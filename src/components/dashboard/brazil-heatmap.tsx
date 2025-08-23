@@ -53,61 +53,67 @@ export function BrazilHeatmap({ students }: BrazilHeatmapProps) {
     return { stateData: data, scData: counts['br-sc'] };
   }, [students]);
 
-  const mapOptions = {
-    chart: {
-        map: 'countries/br/br-all',
-        height: 400,
-    },
-    title: {
-        text: ''
-    },
-    credits: {
-        enabled: false,
-    },
-    mapNavigation: {
-        enabled: true,
-        buttonOptions: {
-            verticalAlign: 'bottom'
-        }
-    },
-    colorAxis: {
-        min: 0,
-        minColor: '#E6E7E8',
-        maxColor: 'hsl(210, 65%, 40%)',
-        stops: [
-            [0, '#E6E7E8'], // No data
-            [0.01, 'hsl(210, 65%, 80%)'], // Lightest blue for min value > 0
-            [1, 'hsl(210, 65%, 30%)'] // Darkest blue for max value
-        ]
-    },
-    series: [{
-        data: stateData,
-        name: 'Número de Alunos',
-        states: {
-            hover: {
-                color: 'hsl(210, 80%, 60%)'
+  const mapOptions = useMemo(() => {
+      const studentCounts = stateData.map(d => d[1] as number);
+      const maxStudents = Math.max(...studentCounts, 0);
+
+      return {
+        chart: {
+            map: 'countries/br/br-all',
+            height: 400,
+        },
+        title: {
+            text: ''
+        },
+        credits: {
+            enabled: false,
+        },
+        mapNavigation: {
+            enabled: true,
+            buttonOptions: {
+                verticalAlign: 'bottom'
             }
         },
-        dataLabels: {
-            enabled: true,
-            format: '{point.value}',
-            style: {
-                fontSize: '10px',
-                color: '#333',
-                textOutline: 'none'
+        colorAxis: {
+            min: 0,
+            max: maxStudents > 0 ? maxStudents : 1, // Avoid max being 0
+            minColor: '#E6E7E8',
+            maxColor: 'hsl(210, 65%, 40%)',
+            stops: [
+                [0, '#E6E7E8'], // No data
+                [0.01, 'hsl(210, 65%, 80%)'], // Lightest blue for min value > 0
+                [1, 'hsl(210, 65%, 30%)'] // Darkest blue for max value
+            ]
+        },
+        series: [{
+            data: stateData,
+            name: 'Número de Alunos',
+            states: {
+                hover: {
+                    color: 'hsl(210, 80%, 60%)'
+                }
+            },
+            dataLabels: {
+                enabled: true,
+                format: '{point.value}',
+                style: {
+                    fontSize: '10px',
+                    color: '#333',
+                    textOutline: 'none'
+                }
             }
-        }
-    }],
-    tooltip: {
-        formatter: function(this: Highcharts.TooltipFormatterContextObject): string {
-            const point = this.point as any;
-            if (point['hc-key'] === 'br-sc' && scData) {
-                return `${point.name}<br/><b>Total: ${point.value}</b><br/>Joinville: ${scData.joinville}<br/>Demais: ${scData.others}`;
+        }],
+        tooltip: {
+            formatter: function(this: Highcharts.TooltipFormatterContextObject): string {
+                const point = this.point as any;
+                if (point['hc-key'] === 'br-sc' && scData) {
+                    return `${point.name}<br/><b>Total: ${point.value}</b><br/>Joinville: ${scData.joinville}<br/>Demais: ${scData.others}`;
+                }
+                return `${point.name}: <b>${point.value}</b> aluno(s)`;
             }
-            return `${point.name}: <b>${point.value}</b> aluno(s)`;
-        }
-    },
-  };
+        },
+      }
+  }, [stateData, scData]);
 
   return (
     <Card className="shadow-sm hover:shadow-md transition-shadow h-full">
