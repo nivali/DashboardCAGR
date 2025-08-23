@@ -18,13 +18,15 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
   const { 
     minIaa, maxIaa, availableYears, 
     minAge, maxAge,
-    courses, situations, genders, races, entryForms
+    courses, situations, genders, races, entryForms,
+    categories, maritalStatus
   } = useMemo(() => {
     if (students.length === 0) {
       return { 
         minIaa: 0, maxIaa: 10, availableYears: [],
         minAge: 15, maxAge: 80,
-        courses: [], situations: [], genders: [], races: [], entryForms: []
+        courses: [], situations: [], genders: [], races: [], entryForms: [],
+        categories: [], maritalStatus: []
       };
     }
     const iaas = students.map(s => s.iaa);
@@ -42,6 +44,8 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
       genders: [...new Set(students.map(s => s.sexo))].sort(),
       races: [...new Set(students.map(s => s.racaCor))].sort(),
       entryForms: [...new Set(students.map(s => s.formaIngresso))].sort(),
+      categories: [...new Set(students.map(s => s.categoriaIngresso))].sort(),
+      maritalStatus: [...new Set(students.map(s => s.estadoCivil))].sort(),
     };
   }, [students]);
   
@@ -49,11 +53,13 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
     iaa: [minIaa, maxIaa],
     year: [availableYears[0] || new Date().getFullYear() - 10, availableYears[availableYears.length - 1] || new Date().getFullYear()],
     age: [minAge, maxAge],
-    nomeCurso: 'all',
-    situacao: 'all',
-    sexo: 'all',
-    racaCor: 'all',
-    formaIngresso: 'all'
+    nomeCurso: [] as string[],
+    situacao: [] as string[],
+    sexo: [] as string[],
+    racaCor: [] as string[],
+    formaIngresso: [] as string[],
+    categoriaIngresso: [] as string[],
+    estadoCivil: [] as string[],
   });
 
   const filteredStudents = useMemo(() => {
@@ -61,13 +67,15 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
       const iaaMatch = student.iaa >= filters.iaa[0] && student.iaa <= filters.iaa[1];
       const yearMatch = student.anoIngresso >= filters.year[0] && student.anoIngresso <= filters.year[1];
       const ageMatch = student.age >= filters.age[0] && student.age <= filters.age[1];
-      const courseMatch = filters.nomeCurso === 'all' || student.nomeCurso === filters.nomeCurso;
-      const situationMatch = filters.situacao === 'all' || student.situacao === filters.situacao;
-      const genderMatch = filters.sexo === 'all' || student.sexo === filters.sexo;
-      const raceMatch = filters.racaCor === 'all' || student.racaCor === filters.racaCor;
-      const entryFormMatch = filters.formaIngresso === 'all' || student.formaIngresso === filters.formaIngresso;
+      const courseMatch = filters.nomeCurso.length === 0 || filters.nomeCurso.includes(student.nomeCurso);
+      const situationMatch = filters.situacao.length === 0 || filters.situacao.includes(student.situacao);
+      const genderMatch = filters.sexo.length === 0 || filters.sexo.includes(student.sexo);
+      const raceMatch = filters.racaCor.length === 0 || filters.racaCor.includes(student.racaCor);
+      const entryFormMatch = filters.formaIngresso.length === 0 || filters.formaIngresso.includes(student.formaIngresso);
+      const categoryMatch = filters.categoriaIngresso.length === 0 || filters.categoriaIngresso.includes(student.categoriaIngresso);
+      const maritalStatusMatch = filters.estadoCivil.length === 0 || filters.estadoCivil.includes(student.estadoCivil);
 
-      return iaaMatch && yearMatch && ageMatch && courseMatch && situationMatch && genderMatch && raceMatch && entryFormMatch;
+      return iaaMatch && yearMatch && ageMatch && courseMatch && situationMatch && genderMatch && raceMatch && entryFormMatch && categoryMatch && maritalStatusMatch;
     });
   }, [students, filters]);
 
@@ -84,7 +92,7 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
           <Filters
             onFilterChange={setFilters}
             filters={filters}
-            options={{ courses, situations, genders, races, entryForms }}
+            options={{ courses, situations, genders, races, entryForms, categories, maritalStatus }}
             initialRanges={{
                 iaa: [minIaa, maxIaa],
                 year: [availableYears[0] || 2010, availableYears[availableYears.length - 1] || new Date().getFullYear()],

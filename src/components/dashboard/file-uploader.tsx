@@ -26,7 +26,7 @@ const parseAndTransformData = (csvText: string): Student[] => {
     const requiredColumns = [
         "nomeCurso", "Situacao", "Sexo", "racaCor", "dataNascimento", 
         "Naturalidade", "formaIngresso", "IAA-indiceAproveitamentoAcumulado", 
-        "MunicipioSG", "UFSG", "anoSemestreIngresso"
+        "MunicipioSG", "UFSG", "anoSemestreIngresso", "categoriaIngresso", "estadoCivil"
     ];
     
     const indices: { [key: string]: number } = {};
@@ -83,6 +83,8 @@ const parseAndTransformData = (csvText: string): Student[] => {
             unidadeFederativa: unidadeFederativa,
             cidadeNaturalidade: cidadeNaturalidade,
             formaIngresso: values[indices.formaIngresso] || 'N/A',
+            categoriaIngresso: values[indices.categoriaIngresso] || 'N/A',
+            estadoCivil: values[indices.estadoCivil] || 'N/A',
             iaa: isNaN(iaa) ? 0 : iaa,
             municipioSG: values[indices.MunicipioSG] || 'N/A',
             ufSG: values[indices.UFSG] || 'N/A',
@@ -105,7 +107,9 @@ export default function FileUploader({ onDataLoaded }: FileUploaderProps) {
 
     setIsLoading(true);
     try {
-      const text = await file.text();
+      const arrayBuffer = await file.arrayBuffer();
+      const decoder = new TextDecoder('latin1');
+      const text = decoder.decode(arrayBuffer);
       const data = parseAndTransformData(text);
       if(data.length === 0) {
         throw new Error("Nenhum dado válido encontrado no arquivo. Verifique o formato e o conteúdo.");
@@ -147,14 +151,16 @@ export default function FileUploader({ onDataLoaded }: FileUploaderProps) {
             <Input id="csv-file" type="file" accept=".csv" onChange={handleFileChange} disabled={isLoading} className="hidden"/>
             <label htmlFor="csv-file" className="w-full">
               <Button asChild className="w-full cursor-pointer">
-                {isLoading ? (
-                  <span>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processando...
-                  </span>
-                ) : (
-                  <span>Selecionar Arquivo</span>
-                )}
+                <span>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    <span>Selecionar Arquivo</span>
+                  )}
+                </span>
               </Button>
             </label>
             <p className="text-xs text-muted-foreground">Tamanho máximo do arquivo: 10MB</p>

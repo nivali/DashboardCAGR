@@ -9,6 +9,8 @@ export interface Student {
   unidadeFederativa: string;
   cidadeNaturalidade: string;
   formaIngresso: string;
+  categoriaIngresso: string;
+  estadoCivil: string;
   iaa: number;
   municipioSG: string;
   ufSG: string;

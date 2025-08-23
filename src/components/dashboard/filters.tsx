@@ -6,18 +6,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Filter } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Filter, ChevronDown, X } from "lucide-react"
 
 type FilterValues = {
   iaa: number[],
   year: number[],
   age: number[],
-  nomeCurso: string,
-  situacao: string,
-  sexo: string,
-  racaCor: string,
-  formaIngresso: string,
+  nomeCurso: string[],
+  situacao: string[],
+  sexo: string[],
+  racaCor: string[],
+  formaIngresso: string[],
+  categoriaIngresso: string[],
+  estadoCivil: string[],
 }
 
 interface FiltersProps {
@@ -29,6 +34,8 @@ interface FiltersProps {
     genders: string[];
     races: string[];
     entryForms: string[];
+    categories: string[];
+    maritalStatus: string[];
   };
   initialRanges: {
     iaa: number[];
@@ -37,22 +44,73 @@ interface FiltersProps {
   }
 }
 
-const FilterSelect: React.FC<{label: string, value: string, onValueChange: (v:string) => void, options: string[]}> = ({ label, value, onValueChange, options}) => (
-    <div className="space-y-2">
-        <Label>{label}</Label>
-        <Select value={value} onValueChange={onValueChange}>
-            <SelectTrigger>
-                <SelectValue placeholder={`Todos os ${label.toLowerCase()}`} />
-            </SelectTrigger>
-            <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                {options.map(option => (
-                    <SelectItem key={option} value={option}>{option}</SelectItem>
-                ))}
-            </SelectContent>
-        </Select>
-    </div>
-);
+const MultiSelectFilter: React.FC<{
+    label: string, 
+    selected: string[], 
+    onSelectionChange: (selected: string[]) => void, 
+    options: string[]
+}> = ({ label, selected, onSelectionChange, options}) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    const handleSelect = (option: string) => {
+        const newSelected = selected.includes(option)
+            ? selected.filter(item => item !== option)
+            : [...selected, option];
+        onSelectionChange(newSelected);
+    };
+    
+    const displayText = selected.length > 0
+        ? `${selected.length} selecionado(s)`
+        : `Todos os ${label.toLowerCase()}`;
+
+    return (
+        <div className="space-y-2">
+            <Label>{label}</Label>
+            <Popover open={isOpen} onOpenChange={setIsOpen}>
+                <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-between font-normal">
+                        <span className="truncate">{displayText}</span>
+                        <ChevronDown className="h-4 w-4 opacity-50" />
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                    <ScrollArea className="h-64">
+                        <div className="p-2 space-y-1">
+                            {options.map(option => (
+                                <div key={option} className="flex items-center space-x-2 p-2 hover:bg-muted rounded-md">
+                                    <Checkbox
+                                        id={`${label}-${option}`}
+                                        checked={selected.includes(option)}
+                                        onCheckedChange={() => handleSelect(option)}
+                                    />
+                                    <label
+                                        htmlFor={`${label}-${option}`}
+                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex-1"
+                                    >
+                                        {option}
+                                    </label>
+                                </div>
+                            ))}
+                        </div>
+                    </ScrollArea>
+                     {selected.length > 0 && (
+                        <div className="p-2 border-t">
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                className="w-full justify-center"
+                                onClick={() => onSelectionChange([])}
+                            >
+                                <X className="mr-2 h-4 w-4" />
+                                Limpar seleção
+                            </Button>
+                        </div>
+                    )}
+                </PopoverContent>
+            </Popover>
+        </div>
+    );
+};
 
 
 export function Filters({ onFilterChange, filters, options, initialRanges }: FiltersProps) {
@@ -74,8 +132,10 @@ export function Filters({ onFilterChange, filters, options, initialRanges }: Fil
       setCurrentFilters(prev => ({...prev, [key]: value}));
   }
   
-  const handleSelectChange = (key: 'nomeCurso' | 'situacao' | 'sexo' | 'racaCor' | 'formaIngresso', value: string) => {
-      setCurrentFilters(prev => ({...prev, [key]: value}));
+  const handleMultiSelectChange = (key: keyof FilterValues, value: string[]) => {
+    if (Array.isArray(currentFilters[key])) {
+        setCurrentFilters(prev => ({...prev, [key]: value}));
+    }
   }
 
   const handleInputChange = (key: 'year' | 'age', index: number, value: string) => {
@@ -98,11 +158,13 @@ export function Filters({ onFilterChange, filters, options, initialRanges }: Fil
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        <FilterSelect label="Curso" value={currentFilters.nomeCurso} onValueChange={(v) => handleSelectChange('nomeCurso', v)} options={options.courses} />
-        <FilterSelect label="Situação" value={currentFilters.situacao} onValueChange={(v) => handleSelectChange('situacao', v)} options={options.situations} />
-        <FilterSelect label="Gênero" value={currentFilters.sexo} onValueChange={(v) => handleSelectChange('sexo', v)} options={options.genders} />
-        <FilterSelect label="Raça/Cor" value={currentFilters.racaCor} onValueChange={(v) => handleSelectChange('racaCor', v)} options={options.races} />
-        <FilterSelect label="Forma de Ingresso" value={currentFilters.formaIngresso} onValueChange={(v) => handleSelectChange('formaIngresso', v)} options={options.entryForms} />
+        <MultiSelectFilter label="Curso" selected={currentFilters.nomeCurso} onSelectionChange={(v) => handleMultiSelectChange('nomeCurso', v)} options={options.courses} />
+        <MultiSelectFilter label="Situação" selected={currentFilters.situacao} onSelectionChange={(v) => handleMultiSelectChange('situacao', v)} options={options.situations} />
+        <MultiSelectFilter label="Gênero" selected={currentFilters.sexo} onSelectionChange={(v) => handleMultiSelectChange('sexo', v)} options={options.genders} />
+        <MultiSelectFilter label="Raça/Cor" selected={currentFilters.racaCor} onSelectionChange={(v) => handleMultiSelectChange('racaCor', v)} options={options.races} />
+        <MultiSelectFilter label="Forma de Ingresso" selected={currentFilters.formaIngresso} onSelectionChange={(v) => handleMultiSelectChange('formaIngresso', v)} options={options.entryForms} />
+        <MultiSelectFilter label="Categoria de Ingresso" selected={currentFilters.categoriaIngresso} onSelectionChange={(v) => handleMultiSelectChange('categoriaIngresso', v)} options={options.categories} />
+        <MultiSelectFilter label="Estado Civil" selected={currentFilters.estadoCivil} onSelectionChange={(v) => handleMultiSelectChange('estadoCivil', v)} options={options.maritalStatus} />
 
         <div className="space-y-4">
           <Label>Idade</Label>
@@ -182,4 +244,3 @@ export function Filters({ onFilterChange, filters, options, initialRanges }: Fil
     </Card>
   )
 }
-
