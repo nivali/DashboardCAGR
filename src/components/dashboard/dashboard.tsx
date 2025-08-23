@@ -9,7 +9,7 @@ import { Filters } from '@/components/dashboard/filters';
 import { StatsCards } from '@/components/dashboard/stats-cards';
 import { DataCharts } from '@/components/dashboard/data-charts';
 import { AppliedFilters } from '@/components/dashboard/applied-filters';
-import { RefreshCcw, Download, Loader2, EyeOff } from 'lucide-react';
+import { RefreshCcw, Download, Loader2, EyeOff, X } from 'lucide-react';
 import { BrazilHeatmap } from './brazil-heatmap';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu';
 
