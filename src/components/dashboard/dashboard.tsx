@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import html2canvas from 'html2canvas';
 import type { Student } from '@/types/student';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,25 @@ interface DashboardProps {
 export default function Dashboard({ students, onReset }: DashboardProps) {
   const [isSaving, setIsSaving] = useState(false);
   const dashboardRef = useRef<HTMLDivElement>(null);
+  const [backgroundColor, setBackgroundColor] = useState('rgb(242, 247, 255)');
+
+  useEffect(() => {
+    if (dashboardRef.current) {
+        const computedStyle = getComputedStyle(dashboardRef.current);
+        // We need to fetch the actual RGB value of the --background variable
+        // as html2canvas has issues with `hsl(var(--...))` format.
+        const bgVar = `hsl(${getComputedStyle(document.documentElement).getPropertyValue('--background').trim()})`;
+        
+        // A little trick to convert CSS variable to a usable format like rgb()
+        const tempDiv = document.createElement('div');
+        tempDiv.style.color = bgVar;
+        document.body.appendChild(tempDiv);
+        const color = getComputedStyle(tempDiv).color;
+        document.body.removeChild(tempDiv);
+        
+        setBackgroundColor(color || 'rgb(242, 247, 255)');
+    }
+  }, []);
 
   const { 
     minIaa, maxIaa, availableYears, 
@@ -35,8 +54,8 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
         categories: [], maritalStatus: [], nationalities: [], semesters: []
       };
     }
-    const iaas = students.map(s => s.iaa);
-    const ages = students.map(s => s.age);
+    const iaas = students.map(s => s.iaa).filter(Boolean);
+    const ages = students.map(s => s.age).filter(Boolean);
     const years = [...new Set(students.map(s => s.anoIngresso))].sort((a, b) => a - b);
     
     return {
@@ -80,6 +99,25 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
     semestreIngresso: [] as string[],
   });
 
+  // Reset filters when the underlying data changes to avoid invalid filter states
+  useEffect(() => {
+    setFilters({
+      iaa: initialRanges.iaa,
+      year: initialRanges.year,
+      age: initialRanges.age,
+      nomeCurso: [],
+      situacao: [],
+      sexo: [],
+      racaCor: [],
+      formaIngresso: [],
+      categoriaIngresso: [],
+      estadoCivil: [],
+      nacionalidade: [],
+      semestreIngresso: [],
+    });
+  }, [initialRanges]);
+
+
   const filteredStudents = useMemo(() => {
     return students.filter(student => {
       const iaaMatch = student.iaa >= filters.iaa[0] && student.iaa <= filters.iaa[1];
@@ -106,7 +144,7 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
         const canvas = await html2canvas(dashboardRef.current, {
             useCORS: true,
             scale: 2, 
-            backgroundColor: 'hsl(var(--background))'
+            backgroundColor: backgroundColor
         });
         const link = document.createElement('a');
         link.download = 'dashboard-alunovis.png';
