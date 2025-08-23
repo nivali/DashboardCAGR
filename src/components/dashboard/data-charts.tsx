@@ -65,12 +65,17 @@ const aggregateNestedData = (data: { primary: string; secondary: string }[]): { 
 export function DataCharts({ students, hiddenCharts, onToggleChart }: DataChartsProps) {
     const { 
         genderData, raceData, situationData, nationalityData,
-        iaaByGenderData, iaaByRaceData, iaaByOriginData, iaaQuartiles
+        iaaByGenderData, iaaByRaceData, iaaByOriginData, iaaQuartiles,
+        iaaDistributionData
     } = useMemo(() => {
         const genderCounts: { [key: string]: number } = {}
         const raceCounts: { [key: string]: number } = {}
         const situationCounts: { [key: string]: number } = {}
         const nationalityCounts: { [key: string]: number } = {}
+        const iaaRanges: { [key: string]: number } = {
+            "0-1000": 0, "1001-2000": 0, "2001-3000": 0, "3001-4000": 0, "4001-5000": 0,
+            "5001-6000": 0, "6001-7000": 0, "7001-8000": 0, "8001-9000": 0, "9001-10000": 0
+        };
         
         const sortedIaa = students.map(s => s.iaa).filter(iaa => iaa > 0).sort((a, b) => a - b);
         const q1 = sortedIaa[Math.floor(sortedIaa.length / 4)] || 0;
@@ -88,6 +93,18 @@ export function DataCharts({ students, hiddenCharts, onToggleChart }: DataCharts
             situationCounts[student.situacao] = (situationCounts[student.situacao] || 0) + 1;
             nationalityCounts[student.nacionalidade] = (nationalityCounts[student.nacionalidade] || 0) + 1;
             
+            const iaa = student.iaa;
+            if (iaa >= 0 && iaa <= 1000) iaaRanges["0-1000"]++;
+            else if (iaa > 1000 && iaa <= 2000) iaaRanges["1001-2000"]++;
+            else if (iaa > 2000 && iaa <= 3000) iaaRanges["2001-3000"]++;
+            else if (iaa > 3000 && iaa <= 4000) iaaRanges["3001-4000"]++;
+            else if (iaa > 4000 && iaa <= 5000) iaaRanges["4001-5000"]++;
+            else if (iaa > 5000 && iaa <= 6000) iaaRanges["5001-6000"]++;
+            else if (iaa > 6000 && iaa <= 7000) iaaRanges["6001-7000"]++;
+            else if (iaa > 7000 && iaa <= 8000) iaaRanges["7001-8000"]++;
+            else if (iaa > 8000 && iaa <= 9000) iaaRanges["8001-9000"]++;
+            else if (iaa > 9000 && iaa <= 10000) iaaRanges["9001-10000"]++;
+
             if(student.iaa > 0){
                 const iaaQuartile = getIaaQuartile(student.iaa, quartiles);
                 iaaGenderPairs.push({ primary: iaaQuartile, secondary: student.sexo });
@@ -107,7 +124,8 @@ export function DataCharts({ students, hiddenCharts, onToggleChart }: DataCharts
             iaaByGenderData: aggregateNestedData(iaaGenderPairs),
             iaaByRaceData: aggregateNestedData(iaaRacePairs),
             iaaByOriginData: aggregateNestedData(iaaOriginPairs),
-            iaaQuartiles: {q1, q2, q3}
+            iaaQuartiles: {q1, q2, q3},
+            iaaDistributionData: toChartData(iaaRanges),
         }
     }, [students])
 
@@ -136,8 +154,21 @@ export function DataCharts({ students, hiddenCharts, onToggleChart }: DataCharts
     const iaaByGenderConfig = stackedChartConfig(iaaByGenderData);
     const iaaByRaceConfig = stackedChartConfig(iaaByRaceData);
     const iaaByOriginConfig = stackedChartConfig(iaaByOriginData);
+    const iaaDistributionConfig = chartConfig(iaaDistributionData);
     
     const charts = [
+      { id: 'iaaDistribution', title: 'Distribuição de IAA', className: 'lg:col-span-3', component: (
+          <ChartCard title="Distribuição de IAA por Faixa" className="lg:col-span-3" onRemove={() => onToggleChart('iaaDistribution')}>
+              <ChartContainer config={iaaDistributionConfig} className="min-h-[200px] w-full">
+                  <BarChart data={iaaDistributionData} margin={{ left: 0, right: 30 }}>
+                      <XAxis dataKey="name" angle={-45} textAnchor="end" height={60} interval={0} />
+                      <YAxis />
+                      <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
+                      <Bar dataKey="value" radius={5} />
+                  </BarChart>
+              </ChartContainer>
+          </ChartCard>
+      )},
       { id: 'gender', title: 'Distribuição por Gênero', component: (
           <ChartCard title="Distribuição por Gênero" onRemove={() => onToggleChart('gender')}>
               <ChartContainer config={genderConfig} className="min-h-[200px] w-full">

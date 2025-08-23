@@ -21,6 +21,7 @@ interface DashboardProps {
 const chartNames: { [key: string]: string } = {
     stats: 'Cartões de Estatísticas',
     heatmap: 'Mapa de Calor',
+    iaaDistribution: 'Distribuição de IAA',
     gender: 'Gráfico de Gênero',
     situation: 'Gráfico de Situação',
     nationality: 'Gráfico de Nacionalidade',
