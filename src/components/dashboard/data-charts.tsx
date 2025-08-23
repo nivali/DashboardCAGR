@@ -65,10 +65,10 @@ export function DataCharts({ students }: DataChartsProps) {
         const situationCounts: { [key: string]: number } = {}
         const cityCounts: { [key: string]: number } = {}
         
-        const sortedIaa = students.map(s => s.iaa).sort((a, b) => a - b);
-        const q1 = sortedIaa[Math.floor(sortedIaa.length / 4)];
-        const q2 = sortedIaa[Math.floor(sortedIaa.length / 2)];
-        const q3 = sortedIaa[Math.floor(sortedIaa.length * 3 / 4)];
+        const sortedIaa = students.map(s => s.iaa).filter(iaa => iaa > 0).sort((a, b) => a - b);
+        const q1 = sortedIaa[Math.floor(sortedIaa.length / 4)] || 0;
+        const q2 = sortedIaa[Math.floor(sortedIaa.length / 2)] || 0;
+        const q3 = sortedIaa[Math.floor(sortedIaa.length * 3 / 4)] || 0;
         const quartiles = [q1, q2, q3];
 
         const iaaGenderPairs: {primary: string, secondary: string}[] = [];
@@ -100,68 +100,74 @@ export function DataCharts({ students }: DataChartsProps) {
         }
     }, [students])
 
-    const chartConfig = (data: {name: string, value?: any, fill?: string}[], key?: string) => {
+    const chartConfig = (data: {name: string, value?: any, fill?: string}[]) => {
         return data.reduce((acc, item) => {
             const name = item.name;
             const color = item.fill;
-            if(key) {
-                Object.keys(item).filter(k => k !== 'name').forEach((k, index) => {
-                    if(!acc[k]){
-                        acc[k] = { label: k, color: `hsl(var(--chart-${(index % 5) + 1}))` };
-                    }
-                })
-            } else {
-                 acc[name] = { label: name, color: color };
-            }
+            acc[name] = { label: name, color: color };
             return acc;
         }, {} as any);
     }
     
-    const iaaByGenderConfig = chartConfig(iaaByGenderData, "name");
-    const iaaByRaceConfig = chartConfig(iaaByRaceData, "name");
+    const stackedChartConfig = (data: {name: string, [key: string]: any}[]) => {
+      if (data.length === 0) return {};
+      const keys = Object.keys(data[0]).filter(k => k !== 'name');
+      return keys.reduce((acc, key, index) => {
+        acc[key] = { label: key, color: `hsl(var(--chart-${(index % 5) + 1}))` };
+        return acc;
+      }, {} as any)
+    }
+
+    const genderConfig = chartConfig(genderData);
+    const raceConfig = chartConfig(raceData);
+    const cityConfig = chartConfig(cityData);
+    const situationConfig = chartConfig(situationData);
+    const iaaByGenderConfig = stackedChartConfig(iaaByGenderData);
+    const iaaByRaceConfig = stackedChartConfig(iaaByRaceData);
+
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
         <ChartCard title="Distribuição por Gênero">
-            <ResponsiveContainer width="100%" height="100%">
+            <ChartContainer config={genderConfig} className="min-h-[200px] w-full">
                 <PieChart>
                     <Pie data={genderData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label />
                     <Tooltip content={<ChartTooltipContent hideLabel />} />
                     <ChartLegend content={<ChartLegendContent />} />
                 </PieChart>
-             </ResponsiveContainer>
+             </ChartContainer>
         </ChartCard>
         <ChartCard title="Distribuição por Raça/Cor">
-            <ResponsiveContainer width="100%" height="100%">
+            <ChartContainer config={raceConfig} className="min-h-[200px] w-full">
                 <BarChart data={raceData} layout="vertical" margin={{ left: 30, right: 30 }}>
                     <XAxis type="number" hide/>
                     <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={80} />
                     <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
                     <Bar dataKey="value" radius={5} />
                 </BarChart>
-            </ResponsiveContainer>
+            </ChartContainer>
         </ChartCard>
         <ChartCard title="Top 10 Cidades de Origem">
-            <ResponsiveContainer width="100%" height="100%">
+            <ChartContainer config={cityConfig} className="min-h-[200px] w-full">
                 <BarChart data={cityData} layout="vertical" margin={{ left: 30, right: 30 }}>
                     <XAxis type="number" hide />
                     <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={120} fontSize={12} interval={0} />
                     <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
                     <Bar dataKey="value" radius={5} />
                 </BarChart>
-            </ResponsiveContainer>
+            </ChartContainer>
         </ChartCard>
          <ChartCard title="Distribuição por Situação">
-            <ResponsiveContainer width="100%" height="100%">
+            <ChartContainer config={situationConfig} className="min-h-[200px] w-full">
                 <PieChart>
                     <Pie data={situationData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={80} label />
                     <Tooltip content={<ChartTooltipContent hideLabel />} />
                     <ChartLegend content={<ChartLegendContent />} />
                 </PieChart>
-            </ResponsiveContainer>
+            </ChartContainer>
         </ChartCard>
         <ChartCard title="Quartis de IAA por Gênero" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ChartContainer config={iaaByGenderConfig} className="min-h-[200px] w-full">
                 <BarChart data={iaaByGenderData} layout="vertical">
                     <XAxis type="number" hide />
                     <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={80} />
@@ -171,10 +177,10 @@ export function DataCharts({ students }: DataChartsProps) {
                        <Bar key={key} dataKey={key} stackId="a" fill={iaaByGenderConfig[key].color} radius={5} />
                     ))}
                 </BarChart>
-            </ResponsiveContainer>
+            </ChartContainer>
         </ChartCard>
         <ChartCard title="Quartis de IAA por Raça/Cor" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ChartContainer config={iaaByRaceConfig} className="min-h-[200px] w-full">
                  <BarChart data={iaaByRaceData} layout="horizontal">
                     <YAxis />
                     <XAxis dataKey="name" type="category" tickLine={false} axisLine={false} />
@@ -184,10 +190,8 @@ export function DataCharts({ students }: DataChartsProps) {
                        <Bar key={key} dataKey={key} stackId="a" fill={iaaByRaceConfig[key].color} radius={[5, 5, 0, 0]} />
                     ))}
                 </BarChart>
-            </ResponsiveContainer>
+            </ChartContainer>
         </ChartCard>
     </div>
   )
 }
-
-    
