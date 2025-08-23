@@ -77,20 +77,15 @@ export function BrazilHeatmap({ students }: BrazilHeatmapProps) {
         colorAxis: {
             min: 0,
             max: maxStudents > 0 ? maxStudents : 1, // Avoid max being 0
-            minColor: '#E6E7E8',
-            maxColor: 'hsl(140, 65%, 40%)',
-            stops: [
-                [0, '#E6E7E8'], // No data
-                [0.01, 'hsl(140, 65%, 80%)'], // Lightest green for min value > 0
-                [1, 'hsl(140, 65%, 30%)'] // Darkest green for max value
-            ]
+            minColor: '#EAF7E8',
+            maxColor: '#0A6847',
         },
         series: [{
             data: stateData,
             name: 'Número de Alunos',
             states: {
                 hover: {
-                    color: 'hsl(140, 80%, 60%)'
+                    color: '#75B879'
                 }
             },
             dataLabels: {
