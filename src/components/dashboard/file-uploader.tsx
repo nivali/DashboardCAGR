@@ -148,10 +148,10 @@ export default function FileUploader({ onDataLoaded }: FileUploaderProps) {
             <label htmlFor="csv-file" className="w-full">
               <Button asChild className="w-full cursor-pointer">
                 {isLoading ? (
-                  <>
+                  <span>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Processando...
-                  </>
+                  </span>
                 ) : (
                   <span>Selecionar Arquivo</span>
                 )}
