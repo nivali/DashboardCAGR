@@ -44,7 +44,7 @@ export function DataCharts({ students }: DataChartsProps) {
             situationCounts[student.situacao] = (situationCounts[student.situacao] || 0) + 1;
         }
         
-        const toChartData = (counts: {[key: string]: number}) => Object.entries(counts).map(([name, value]) => ({ name, value, fill: `hsl(var(--chart-${(Object.keys(counts).indexOf(name) % 5) + 1}))`}));
+        const toChartData = (counts: {[key: string]: number}) => Object.entries(counts).map(([name, value], index) => ({ name, value, fill: `hsl(var(--chart-${(index % 5) + 1}))`}));
 
         return {
             genderData: toChartData(genderCounts),
@@ -54,47 +54,60 @@ export function DataCharts({ students }: DataChartsProps) {
         }
     }, [students])
 
+    const chartConfig = (data: {name: string, value: number, fill: string}[]) => {
+        return data.reduce((acc, {name, fill}) => {
+            acc[name] = { label: name, color: fill };
+            return acc;
+        }, {} as any);
+    }
+
   return (
     <div className="grid gap-4 md:grid-cols-2">
         <ChartCard title="Distribuição por Gênero">
-             <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                    <Pie data={genderData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-                    </Pie>
-                    <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-                    <ChartLegend content={<ChartLegendContent />} />
-                </PieChart>
-            </ResponsiveContainer>
+            <ChartContainer config={chartConfig(genderData)} className="w-full h-full">
+                <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                        <Pie data={genderData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label />
+                        <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+                        <ChartLegend content={<ChartLegendContent />} />
+                    </PieChart>
+                </ResponsiveContainer>
+             </ChartContainer>
         </ChartCard>
         <ChartCard title="Distribuição por Raça/Cor">
-            <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={raceData} layout="vertical" margin={{ left: 30, right: 30 }}>
-                    <XAxis type="number" hide/>
-                    <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={80} />
-                    <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
-                    <Bar dataKey="value" radius={5} />
-                </BarChart>
-            </ResponsiveContainer>
+            <ChartContainer config={chartConfig(raceData)} className="w-full h-full">
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={raceData} layout="vertical" margin={{ left: 30, right: 30 }}>
+                        <XAxis type="number" hide/>
+                        <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={80} />
+                        <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
+                        <Bar dataKey="value" radius={5} />
+                    </BarChart>
+                </ResponsiveContainer>
+            </ChartContainer>
         </ChartCard>
         <ChartCard title="Top 10 Cursos com mais Alunos">
-            <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={courseData} layout="vertical" margin={{ left: 30, right: 30 }}>
-                    <XAxis type="number" hide />
-                    <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={120} fontSize={12} interval={0} />
-                    <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
-                    <Bar dataKey="value" radius={5} />
-                </BarChart>
-            </ResponsiveContainer>
+            <ChartContainer config={chartConfig(courseData)} className="w-full h-full">
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={courseData} layout="vertical" margin={{ left: 30, right: 30 }}>
+                        <XAxis type="number" hide />
+                        <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={120} fontSize={12} interval={0} />
+                        <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
+                        <Bar dataKey="value" radius={5} />
+                    </BarChart>
+                </ResponsiveContainer>
+            </ChartContainer>
         </ChartCard>
          <ChartCard title="Distribuição por Situação">
-             <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                    <Pie data={situationData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={80} label>
-                    </Pie>
-                    <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-                    <ChartLegend content={<ChartLegendContent />} />
-                </PieChart>
-            </ResponsiveContainer>
+            <ChartContainer config={chartConfig(situationData)} className="w-full h-full">
+                <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                        <Pie data={situationData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={80} label />
+                        <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+                        <ChartLegend content={<ChartLegendContent />} />
+                    </PieChart>
+                </ResponsiveContainer>
+            </ChartContainer>
         </ChartCard>
     </div>
   )
