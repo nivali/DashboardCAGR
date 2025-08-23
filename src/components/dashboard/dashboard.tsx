@@ -12,6 +12,8 @@ import { AppliedFilters } from '@/components/dashboard/applied-filters';
 import { RefreshCcw, Download, Loader2, EyeOff, X } from 'lucide-react';
 import { BrazilHeatmap } from './brazil-heatmap';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu';
+import { Label } from '../ui/label';
+import { Switch } from '../ui/switch';
 
 interface DashboardProps {
   students: Student[];
@@ -37,6 +39,8 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
   const dashboardRef = useRef<HTMLDivElement>(null);
   const [backgroundColor, setBackgroundColor] = useState('rgb(255, 255, 255)');
   const [hiddenCharts, setHiddenCharts] = useState<string[]>([]);
+  const [analysisType, setAnalysisType] = useState<'raw' | 'relative'>('raw');
+
 
   useEffect(() => {
     if (dashboardRef.current) {
@@ -177,34 +181,45 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex justify-end gap-2">
-         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline">
-              <EyeOff className="mr-2 h-4 w-4" />
-              Ocultar Gráficos
+       <div className="flex flex-col sm:flex-row justify-end items-center gap-4">
+        <div className="flex items-center space-x-2">
+            <Label htmlFor="analysis-type">Valores Absolutos</Label>
+            <Switch 
+                id="analysis-type"
+                checked={analysisType === 'relative'}
+                onCheckedChange={(checked) => setAnalysisType(checked ? 'relative' : 'raw')}
+            />
+            <Label htmlFor="analysis-type">Valores Relativos</Label>
+        </div>
+        <div className="flex justify-end gap-2">
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                    <EyeOff className="mr-2 h-4 w-4" />
+                    Ocultar Gráficos
+                </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                {allCharts.map(chartId => (
+                    <DropdownMenuCheckboxItem
+                    key={chartId}
+                    checked={!hiddenCharts.includes(chartId)}
+                    onCheckedChange={() => toggleChartVisibility(chartId)}
+                    >
+                    {chartNames[chartId]}
+                    </DropdownMenuCheckboxItem>
+                ))}
+                </DropdownMenuContent>
+            </DropdownMenu>
+            <Button onClick={handleSaveDashboard} variant="outline" disabled={isSaving}>
+                {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                {isSaving ? "Salvando..." : "Salvar Painel"}
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            {allCharts.map(chartId => (
-              <DropdownMenuCheckboxItem
-                key={chartId}
-                checked={!hiddenCharts.includes(chartId)}
-                onCheckedChange={() => toggleChartVisibility(chartId)}
-              >
-                {chartNames[chartId]}
-              </DropdownMenuCheckboxItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <Button onClick={handleSaveDashboard} variant="outline" disabled={isSaving}>
-            {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-            {isSaving ? "Salvando..." : "Salvar Painel"}
-        </Button>
-        <Button onClick={onReset} variant="outline">
-          <RefreshCcw className="mr-2 h-4 w-4" />
-          Carregar Novo Arquivo
-        </Button>
+            <Button onClick={onReset} variant="outline">
+                <RefreshCcw className="mr-2 h-4 w-4" />
+                Carregar Novo Arquivo
+            </Button>
+        </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-4 lg:gap-8 space-y-8 lg:space-y-0">
         <aside className="lg:col-span-1">
@@ -218,7 +233,7 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
         <div className="lg:col-span-3 space-y-8" ref={dashboardRef}>
            <AppliedFilters filters={filters} onFilterChange={setFilters} options={initialRanges} />
           {!hiddenCharts.includes('stats') && <StatsCards students={filteredStudents} />}
-          <DataCharts students={filteredStudents} hiddenCharts={hiddenCharts} onToggleChart={toggleChartVisibility} />
+          <DataCharts students={filteredStudents} hiddenCharts={hiddenCharts} onToggleChart={toggleChartVisibility} analysisType={analysisType} />
           {!hiddenCharts.includes('heatmap') && (
             <div className="md:col-span-3 relative">
                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-6 w-6 z-10" onClick={() => toggleChartVisibility('heatmap')}>
