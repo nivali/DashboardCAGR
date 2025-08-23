@@ -178,6 +178,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart }: DataCharts
     const charts = [
       { id: 'iaaDistribution', title: 'Distribuição de IAA', className: 'lg:col-span-3', component: (
           <ChartCard title="Distribuição de IAA por Faixa" className="lg:col-span-3" onRemove={() => onToggleChart('iaaDistribution')}>
+            <ChartContainer config={iaaDistributionConfig}>
               <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={iaaDistributionData} margin={{ left: 0, right: 30, bottom: 40 }}>
                       <XAxis dataKey="name" angle={-45} textAnchor="end" interval={0} />
@@ -186,10 +187,12 @@ export function DataCharts({ students, hiddenCharts, onToggleChart }: DataCharts
                       <Bar dataKey="value" radius={5} fill="var(--color-iaaDistribution)" />
                   </BarChart>
               </ResponsiveContainer>
+             </ChartContainer>
           </ChartCard>
       )},
       { id: 'gender', title: 'Distribuição por Gênero', component: (
           <ChartCard title="Distribuição por Gênero" onRemove={() => onToggleChart('gender')}>
+             <ChartContainer config={genderConfig}>
               <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                       <Pie data={genderData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label />
@@ -197,10 +200,12 @@ export function DataCharts({ students, hiddenCharts, onToggleChart }: DataCharts
                       <ChartLegend content={<ChartLegendContent />} />
                   </PieChart>
                </ResponsiveContainer>
+              </ChartContainer>
           </ChartCard>
       )},
       { id: 'situation', title: 'Distribuição por Situação', component: (
            <ChartCard title="Distribuição por Situação" onRemove={() => onToggleChart('situation')}>
+             <ChartContainer config={situationConfig}>
               <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                       <Pie data={situationData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={80} label />
@@ -208,10 +213,12 @@ export function DataCharts({ students, hiddenCharts, onToggleChart }: DataCharts
                       <ChartLegend content={<ChartLegendContent />} />
                   </PieChart>
               </ResponsiveContainer>
+              </ChartContainer>
           </ChartCard>
       )},
       { id: 'nationality', title: 'Distribuição por Nacionalidade', component: (
           <ChartCard title="Distribuição por Nacionalidade" onRemove={() => onToggleChart('nationality')}>
+            <ChartContainer config={nationalityConfig}>
               <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                       <Pie data={nationalityData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label />
@@ -219,10 +226,12 @@ export function DataCharts({ students, hiddenCharts, onToggleChart }: DataCharts
                       <ChartLegend content={<ChartLegendContent />} />
                   </PieChart>
                </ResponsiveContainer>
+              </ChartContainer>
           </ChartCard>
       )},
       { id: 'race', title: 'Distribuição por Raça/Cor', className: 'lg:col-span-3', component: (
           <ChartCard title="Distribuição por Raça/Cor" className="lg:col-span-3" onRemove={() => onToggleChart('race')}>
+            <ChartContainer config={raceConfig}>
               <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={raceData} layout="vertical" margin={{ left: 30, right: 30 }}>
                       <XAxis type="number" hide/>
@@ -231,23 +240,27 @@ export function DataCharts({ students, hiddenCharts, onToggleChart }: DataCharts
                       <Bar dataKey="value" radius={5} fill="var(--color-race)" />
                   </BarChart>
               </ResponsiveContainer>
+             </ChartContainer>
           </ChartCard>
       )},
        { id: 'failureRate', title: 'Taxa de Reprovação Média por Semestre', className: 'lg:col-span-3', component: (
         <ChartCard title="Taxa de Reprovação Média por Semestre" description="Diferença média entre IAA e IAP" onRemove={() => onToggleChart('failureRate')}>
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={failureRateBySemesterData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
-              <Legend />
-              <Line type="monotone" dataKey="value" stroke="hsl(var(--chart-1))" strokeWidth={2} name="Taxa de Reprovação Média" />
-            </LineChart>
-          </ResponsiveContainer>
+          <ChartContainer config={{value: {label: 'Taxa de Reprovação Média', color: 'hsl(var(--chart-1))'}}}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={failureRateBySemesterData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
+                <Legend />
+                <Line type="monotone" dataKey="value" stroke="hsl(var(--chart-1))" strokeWidth={2} name="Taxa de Reprovação Média" />
+              </LineChart>
+            </ResponsiveContainer>
+          </ChartContainer>
         </ChartCard>
       )},
       { id: 'iaaByGender', title: 'Quartis de IAA por Gênero', component: (
            <ChartCard title="Quartis de IAA por Gênero" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`} onRemove={() => onToggleChart('iaaByGender')}>
+            <ChartContainer config={iaaByGenderConfig}>
               <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={iaaByGenderData} layout="vertical">
                       <XAxis type="number" hide />
@@ -259,10 +272,12 @@ export function DataCharts({ students, hiddenCharts, onToggleChart }: DataCharts
                       ))}
                   </BarChart>
               </ResponsiveContainer>
+             </ChartContainer>
           </ChartCard>
       )},
       { id: 'iaaByRace', title: 'Quartis de IAA por Raça/Cor', component: (
           <ChartCard title="Quartis de IAA por Raça/Cor" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`} onRemove={() => onToggleChart('iaaByRace')}>
+            <ChartContainer config={iaaByRaceConfig}>
               <ResponsiveContainer width="100%" height="100%">
                    <BarChart data={iaaByRaceData} layout="horizontal">
                       <YAxis />
@@ -274,10 +289,12 @@ export function DataCharts({ students, hiddenCharts, onToggleChart }: DataCharts
                       ))}
                   </BarChart>
               </ResponsiveContainer>
+             </ChartContainer>
           </ChartCard>
       )},
       { id: 'iaaByOrigin', title: 'Quartis de IAA por Origem', component: (
           <ChartCard title="Quartis de IAA por Origem" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`} onRemove={() => onToggleChart('iaaByOrigin')}>
+            <ChartContainer config={iaaByOriginConfig}>
               <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={iaaByOriginData} layout="horizontal">
                       <YAxis />
@@ -289,6 +306,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart }: DataCharts
                       ))}
                   </BarChart>
               </ResponsiveContainer>
+            </ChartContainer>
           </ChartCard>
       )}
     ];
@@ -304,5 +322,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart }: DataCharts
     </div>
   )
 }
+
+    
 
     
