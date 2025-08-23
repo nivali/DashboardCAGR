@@ -58,13 +58,13 @@ const aggregateNestedData = (data: { primary: string; secondary: string }[]): { 
 
 export function DataCharts({ students }: DataChartsProps) {
     const { 
-        genderData, raceData, situationData, cityData,
-        iaaByGenderData, iaaByRaceData, iaaQuartiles
+        genderData, raceData, situationData, nationalityData,
+        iaaByGenderData, iaaByRaceData, iaaByOriginData, iaaQuartiles
     } = useMemo(() => {
         const genderCounts: { [key: string]: number } = {}
         const raceCounts: { [key: string]: number } = {}
         const situationCounts: { [key: string]: number } = {}
-        const cityCounts: { [key: string]: number } = {}
+        const nationalityCounts: { [key: string]: number } = {}
         
         const sortedIaa = students.map(s => s.iaa).filter(iaa => iaa > 0).sort((a, b) => a - b);
         const q1 = sortedIaa[Math.floor(sortedIaa.length / 4)] || 0;
@@ -74,17 +74,20 @@ export function DataCharts({ students }: DataChartsProps) {
 
         const iaaGenderPairs: {primary: string, secondary: string}[] = [];
         const iaaRacePairs: {primary: string, secondary: string}[] = [];
+        const iaaOriginPairs: {primary: string, secondary: string}[] = [];
 
         for (const student of students) {
             genderCounts[student.sexo] = (genderCounts[student.sexo] || 0) + 1;
             raceCounts[student.racaCor] = (raceCounts[student.racaCor] || 0) + 1;
             situationCounts[student.situacao] = (situationCounts[student.situacao] || 0) + 1;
-            cityCounts[student.municipioSG] = (cityCounts[student.municipioSG] || 0) + 1;
+            nationalityCounts[student.nacionalidade] = (nationalityCounts[student.nacionalidade] || 0) + 1;
             
             if(student.iaa > 0){
                 const iaaQuartile = getIaaQuartile(student.iaa, quartiles);
                 iaaGenderPairs.push({ primary: iaaQuartile, secondary: student.sexo });
                 iaaRacePairs.push({ primary: iaaQuartile, secondary: student.racaCor });
+                const origin = student.municipioSG.toLowerCase() === 'joinville' ? 'Joinville' : 'Externo';
+                iaaOriginPairs.push({ primary: iaaQuartile, secondary: origin });
             }
         }
         
@@ -94,9 +97,10 @@ export function DataCharts({ students }: DataChartsProps) {
             genderData: toChartData(genderCounts),
             raceData: toChartData(raceCounts).sort((a,b) => b.value - a.value),
             situationData: toChartData(situationCounts),
-            cityData: toChartData(cityCounts).sort((a,b) => b.value - a.value).slice(0, 10),
+            nationalityData: toChartData(nationalityCounts),
             iaaByGenderData: aggregateNestedData(iaaGenderPairs),
             iaaByRaceData: aggregateNestedData(iaaRacePairs),
+            iaaByOriginData: aggregateNestedData(iaaOriginPairs),
             iaaQuartiles: {q1, q2, q3}
         }
     }, [students])
@@ -121,14 +125,14 @@ export function DataCharts({ students }: DataChartsProps) {
 
     const genderConfig = chartConfig(genderData);
     const raceConfig = chartConfig(raceData);
-    const cityConfig = chartConfig(cityData);
     const situationConfig = chartConfig(situationData);
+    const nationalityConfig = chartConfig(nationalityData);
     const iaaByGenderConfig = stackedChartConfig(iaaByGenderData);
     const iaaByRaceConfig = stackedChartConfig(iaaByRaceData);
-
+    const iaaByOriginConfig = stackedChartConfig(iaaByOriginData);
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <ChartCard title="Distribuição por Gênero">
             <ChartContainer config={genderConfig} className="min-h-[200px] w-full">
                 <PieChart>
@@ -147,8 +151,17 @@ export function DataCharts({ students }: DataChartsProps) {
                 </PieChart>
             </ChartContainer>
         </ChartCard>
+        <ChartCard title="Distribuição por Nacionalidade">
+            <ChartContainer config={nationalityConfig} className="min-h-[200px] w-full">
+                <PieChart>
+                    <Pie data={nationalityData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label />
+                    <Tooltip content={<ChartTooltipContent hideLabel />} />
+                    <ChartLegend content={<ChartLegendContent />} />
+                </PieChart>
+             </ChartContainer>
+        </ChartCard>
 
-        <ChartCard title="Distribuição por Raça/Cor">
+        <ChartCard title="Distribuição por Raça/Cor" className="lg:col-span-3">
             <ChartContainer config={raceConfig} className="min-h-[200px] w-full">
                 <BarChart data={raceData} layout="vertical" margin={{ left: 30, right: 30 }}>
                     <XAxis type="number" hide/>
@@ -158,19 +171,8 @@ export function DataCharts({ students }: DataChartsProps) {
                 </BarChart>
             </ChartContainer>
         </ChartCard>
-
-        <ChartCard title="Top 10 Cidades de Origem">
-            <ChartContainer config={cityConfig} className="min-h-[200px] w-full">
-                <BarChart data={cityData} layout="vertical" margin={{ left: 30, right: 30 }}>
-                    <XAxis type="number" hide />
-                    <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={120} fontSize={12} interval={0} />
-                    <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
-                    <Bar dataKey="value" radius={5} />
-                </BarChart>
-            </ChartContainer>
-        </ChartCard>
         
-        <ChartCard title="Quartis de IAA por Gênero" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`} className="md:col-span-1">
+        <ChartCard title="Quartis de IAA por Gênero" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`}>
             <ChartContainer config={iaaByGenderConfig} className="min-h-[200px] w-full">
                 <BarChart data={iaaByGenderData} layout="vertical">
                     <XAxis type="number" hide />
@@ -183,7 +185,7 @@ export function DataCharts({ students }: DataChartsProps) {
                 </BarChart>
             </ChartContainer>
         </ChartCard>
-        <ChartCard title="Quartis de IAA por Raça/Cor" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`} className="md:col-span-1">
+        <ChartCard title="Quartis de IAA por Raça/Cor" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`}>
             <ChartContainer config={iaaByRaceConfig} className="min-h-[200px] w-full">
                  <BarChart data={iaaByRaceData} layout="horizontal">
                     <YAxis />
@@ -196,7 +198,21 @@ export function DataCharts({ students }: DataChartsProps) {
                 </BarChart>
             </ChartContainer>
         </ChartCard>
-        <div className="md:col-span-2">
+        <ChartCard title="Quartis de IAA por Origem" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`}>
+            <ChartContainer config={iaaByOriginConfig} className="min-h-[200px] w-full">
+                <BarChart data={iaaByOriginData} layout="horizontal">
+                    <YAxis />
+                    <XAxis dataKey="name" type="category" tickLine={false} axisLine={false} />
+                    <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
+                    <Legend />
+                    {Object.keys(iaaByOriginConfig).map(key => (
+                       <Bar key={key} dataKey={key} stackId="a" fill={iaaByOriginConfig[key].color} radius={[5, 5, 0, 0]} />
+                    ))}
+                </BarChart>
+            </ChartContainer>
+        </ChartCard>
+
+        <div className="md:col-span-3">
             <BrazilHeatmap students={students} />
         </div>
     </div>

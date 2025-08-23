@@ -26,7 +26,8 @@ const parseAndTransformData = (csvText: string): Student[] => {
     const requiredColumns = [
         "nomeCurso", "Situacao", "Sexo", "racaCor", "dataNascimento", 
         "Naturalidade", "formaIngresso", "IAA-indiceAproveitamentoAcumulado", 
-        "MunicipioSG", "UFSG", "anoSemestreIngresso", "categoriaIngresso", "estadoCivil"
+        "MunicipioSG", "UFSG", "anoSemestreIngresso", "categoriaIngresso", "estadoCivil",
+        "Nacionalidade" // Adicionado
     ];
     
     const indices: { [key: string]: number } = {};
@@ -70,7 +71,7 @@ const parseAndTransformData = (csvText: string): Student[] => {
         const semestersInCourse = (currentYear - anoIngresso) * 2 + (currentSemester - semestreIngresso) + 1;
 
         const iaaStr = values[indices['IAA-indiceAproveitamentoAcumulado']];
-        const iaa = iaaStr ? parseFloat(iaaStr) / 1000 : 0;
+        const iaa = iaaStr ? parseFloat(iaaStr.replace(',', '.')) / 1000 : 0;
 
         return {
             nomeCurso: (values[indices.nomeCurso] || 'N/A').replace(/\[.*?\]/g, '').trim(),
@@ -80,6 +81,7 @@ const parseAndTransformData = (csvText: string): Student[] => {
             dataNascimento: dataNascimentoStr,
             age: age,
             naturalidade: naturalidade,
+            nacionalidade: values[indices.Nacionalidade] === 'Brasil' ? 'Brasileiro(a)' : 'Estrangeiro(a)',
             unidadeFederativa: unidadeFederativa,
             cidadeNaturalidade: cidadeNaturalidade,
             formaIngresso: values[indices.formaIngresso] || 'N/A',
@@ -153,10 +155,10 @@ export default function FileUploader({ onDataLoaded }: FileUploaderProps) {
               <Button asChild className="w-full cursor-pointer">
                 <span>
                   {isLoading ? (
-                    <>
+                    <span className='flex items-center justify-center'>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Processando...
-                    </>
+                    </span>
                   ) : (
                     <span>Selecionar Arquivo</span>
                   )}

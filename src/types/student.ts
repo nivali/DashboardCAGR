@@ -6,6 +6,7 @@ export interface Student {
   dataNascimento: string;
   age: number;
   naturalidade: string;
+  nacionalidade: string; // Adicionado
   unidadeFederativa: string;
   cidadeNaturalidade: string;
   formaIngresso: string;

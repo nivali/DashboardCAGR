@@ -23,6 +23,7 @@ type FilterValues = {
   formaIngresso: string[],
   categoriaIngresso: string[],
   estadoCivil: string[],
+  nacionalidade: string[],
 }
 
 interface FiltersProps {
@@ -36,6 +37,7 @@ interface FiltersProps {
     entryForms: string[];
     categories: string[];
     maritalStatus: string[];
+    nationalities: string[];
   };
   initialRanges: {
     iaa: number[];
@@ -165,6 +167,7 @@ export function Filters({ onFilterChange, filters, options, initialRanges }: Fil
         <MultiSelectFilter label="Forma de Ingresso" selected={currentFilters.formaIngresso} onSelectionChange={(v) => handleMultiSelectChange('formaIngresso', v)} options={options.entryForms} />
         <MultiSelectFilter label="Categoria de Ingresso" selected={currentFilters.categoriaIngresso} onSelectionChange={(v) => handleMultiSelectChange('categoriaIngresso', v)} options={options.categories} />
         <MultiSelectFilter label="Estado Civil" selected={currentFilters.estadoCivil} onSelectionChange={(v) => handleMultiSelectChange('estadoCivil', v)} options={options.maritalStatus} />
+        <MultiSelectFilter label="Nacionalidade" selected={currentFilters.nacionalidade} onSelectionChange={(v) => handleMultiSelectChange('nacionalidade', v)} options={options.nationalities} />
 
         <div className="space-y-4">
           <Label>Idade</Label>

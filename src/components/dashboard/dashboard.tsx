@@ -19,14 +19,14 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
     minIaa, maxIaa, availableYears, 
     minAge, maxAge,
     courses, situations, genders, races, entryForms,
-    categories, maritalStatus
+    categories, maritalStatus, nationalities
   } = useMemo(() => {
     if (students.length === 0) {
       return { 
         minIaa: 0, maxIaa: 10, availableYears: [],
         minAge: 15, maxAge: 80,
         courses: [], situations: [], genders: [], races: [], entryForms: [],
-        categories: [], maritalStatus: []
+        categories: [], maritalStatus: [], nationalities: []
       };
     }
     const iaas = students.map(s => s.iaa);
@@ -46,6 +46,7 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
       entryForms: [...new Set(students.map(s => s.formaIngresso))].sort(),
       categories: [...new Set(students.map(s => s.categoriaIngresso))].sort(),
       maritalStatus: [...new Set(students.map(s => s.estadoCivil))].sort(),
+      nationalities: [...new Set(students.map(s => s.nacionalidade))].sort(),
     };
   }, [students]);
   
@@ -60,6 +61,7 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
     formaIngresso: [] as string[],
     categoriaIngresso: [] as string[],
     estadoCivil: [] as string[],
+    nacionalidade: [] as string[],
   });
 
   const filteredStudents = useMemo(() => {
@@ -74,8 +76,9 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
       const entryFormMatch = filters.formaIngresso.length === 0 || filters.formaIngresso.includes(student.formaIngresso);
       const categoryMatch = filters.categoriaIngresso.length === 0 || filters.categoriaIngresso.includes(student.categoriaIngresso);
       const maritalStatusMatch = filters.estadoCivil.length === 0 || filters.estadoCivil.includes(student.estadoCivil);
+      const nationalityMatch = filters.nacionalidade.length === 0 || filters.nacionalidade.includes(student.nacionalidade);
 
-      return iaaMatch && yearMatch && ageMatch && courseMatch && situationMatch && genderMatch && raceMatch && entryFormMatch && categoryMatch && maritalStatusMatch;
+      return iaaMatch && yearMatch && ageMatch && courseMatch && situationMatch && genderMatch && raceMatch && entryFormMatch && categoryMatch && maritalStatusMatch && nationalityMatch;
     });
   }, [students, filters]);
 
@@ -92,7 +95,7 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
           <Filters
             onFilterChange={setFilters}
             filters={filters}
-            options={{ courses, situations, genders, races, entryForms, categories, maritalStatus }}
+            options={{ courses, situations, genders, races, entryForms, categories, maritalStatus, nationalities }}
             initialRanges={{
                 iaa: [minIaa, maxIaa],
                 year: [availableYears[0] || 2010, availableYears[availableYears.length - 1] || new Date().getFullYear()],
