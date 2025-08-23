@@ -55,10 +55,16 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
     };
   }, [students]);
   
-  const [filters, setFilters] = useState({
+  const initialRanges = useMemo(() => ({
     iaa: [minIaa, maxIaa],
-    year: [availableYears[0] || new Date().getFullYear() - 10, availableYears[availableYears.length - 1] || new Date().getFullYear()],
+    year: [availableYears[0] || 2010, availableYears[availableYears.length - 1] || new Date().getFullYear()],
     age: [minAge, maxAge],
+  }), [minIaa, maxIaa, availableYears, minAge, maxAge]);
+  
+  const [filters, setFilters] = useState({
+    iaa: initialRanges.iaa,
+    year: initialRanges.year,
+    age: initialRanges.age,
     nomeCurso: [] as string[],
     situacao: [] as string[],
     sexo: [] as string[],
@@ -107,6 +113,11 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
     }
   };
 
+  const filterOptions = {
+    courses, situations, genders, races, entryForms,
+    categories, maritalStatus, nationalities
+  };
+
   return (
     <div className="flex flex-col gap-8">
       <div className="flex justify-end gap-2">
@@ -124,16 +135,12 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
           <Filters
             onFilterChange={setFilters}
             filters={filters}
-            options={{ courses, situations, genders, races, entryForms, categories, maritalStatus, nationalities }}
-            initialRanges={{
-                iaa: [minIaa, maxIaa],
-                year: [availableYears[0] || 2010, availableYears[availableYears.length - 1] || new Date().getFullYear()],
-                age: [minAge, maxAge],
-            }}
+            options={filterOptions}
+            initialRanges={initialRanges}
           />
         </aside>
         <div className="lg:col-span-3 space-y-8" ref={dashboardRef}>
-           <AppliedFilters filters={filters} onFilterChange={setFilters} options={{...options, ...initialRanges}} />
+           <AppliedFilters filters={filters} onFilterChange={setFilters} options={initialRanges} />
           <StatsCards students={filteredStudents} />
           <DataCharts students={filteredStudents} />
         </div>

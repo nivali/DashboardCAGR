@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Badge } from "@/components/ui/badge";
@@ -98,9 +99,12 @@ export function AppliedFilters({ filters, onFilterChange, options }: AppliedFilt
                 {activeFilters.map(([key, values]) => {
                     if (key === 'iaa' || key === 'year' || key === 'age') {
                         const label = key === 'iaa' ? 'IAA' : (key === 'year' ? 'Ano Ingresso' : 'Idade');
+                        const valueText = key === 'iaa' 
+                            ? `${values[0]} - ${values[1]}` 
+                            : `${values[0]} - ${values[1]}`;
                         return (
                              <Badge key={key} variant="secondary" className="flex items-center gap-1">
-                                {label}: {values[0]} - {values[1]}
+                                {label}: {valueText}
                                 <button onClick={() => removeFilter(key)} className="ml-1 rounded-full hover:bg-background/50">
                                     <X className="h-3 w-3" />
                                 </button>
