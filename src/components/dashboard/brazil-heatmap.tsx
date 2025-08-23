@@ -28,7 +28,8 @@ export function BrazilHeatmap({ students }: BrazilHeatmapProps) {
 
   const maxCount = useMemo(() => Math.max(1, ...Object.values(stateCounts)), [stateCounts]);
 
-  const getColor = (uf: string) => {
+  const getColor = (uf: string | undefined) => {
+    if(!uf) return 'hsl(210 20% 90%)';
     const count = stateCounts[uf] || 0;
     if (count === 0) return 'hsl(210 20% 90%)'; // Muted color for no data
     const intensity = Math.round((count / maxCount) * (100 - 40) + 40); // from 40% to 100% lightness
@@ -66,6 +67,7 @@ export function BrazilHeatmap({ students }: BrazilHeatmapProps) {
     TO: { path: "M 350,200 L 320,260 L 380,260 L 400,200 z", name: "Tocantins" },
   };
 
+  const firstStateWithStudents = Object.keys(states).find(s => (stateCounts[s] || 0) > 0);
 
   return (
     <Card className="shadow-sm hover:shadow-md transition-shadow h-full">
@@ -89,7 +91,7 @@ export function BrazilHeatmap({ students }: BrazilHeatmapProps) {
                 <div className="flex items-center gap-2">
                     <span>Menos</span>
                     <div className="flex">
-                        <div className="w-4 h-4" style={{backgroundColor: getColor(Object.keys(states).find(s => (stateCounts[s] || 0) > 0) || "")}}></div>
+                        <div className="w-4 h-4" style={{backgroundColor: getColor(firstStateWithStudents)}}></div>
                         <div className="w-4 h-4" style={{backgroundColor: `hsl(var(--primary), 30%)`}}></div>
                         <div className="w-4 h-4" style={{backgroundColor: `hsl(var(--primary), 10%)`}}></div>
                         <div className="w-4 h-4" style={{backgroundColor: `hsl(var(--primary), 0%)`}}></div>
