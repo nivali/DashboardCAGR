@@ -28,17 +28,29 @@ const stateMapping: { [key: string]: string } = {
 };
 
 export function BrazilHeatmap({ students }: BrazilHeatmapProps) {
-  const stateData = useMemo(() => {
-    const counts: { [key: string]: number } = {};
+  const { stateData, scData } = useMemo(() => {
+    const counts: { [key: string]: { total: number, joinville: number, others: number} } = {};
+
     for (const student of students) {
         if(student.ufSG && student.ufSG !== "N/A"){
             const hcKey = stateMapping[student.ufSG];
             if(hcKey) {
-                 counts[hcKey] = (counts[hcKey] || 0) + 1;
+                 if (!counts[hcKey]) {
+                    counts[hcKey] = { total: 0, joinville: 0, others: 0 };
+                 }
+                 counts[hcKey].total++;
+                 if (student.ufSG === 'SC') {
+                    if (student.municipioSG.toLowerCase() === 'joinville') {
+                        counts[hcKey].joinville++;
+                    } else {
+                        counts[hcKey].others++;
+                    }
+                 }
             }
         }
     }
-    return Object.entries(counts).map(([key, value]) => [key, value]);
+    const data = Object.entries(counts).map(([key, value]) => [key, value.total]);
+    return { stateData: data, scData: counts['br-sc'] };
   }, [students]);
 
   const mapOptions = {
@@ -78,16 +90,22 @@ export function BrazilHeatmap({ students }: BrazilHeatmapProps) {
         },
         dataLabels: {
             enabled: true,
-            format: '{point.name}',
+            format: '{point.value}',
             style: {
-                fontSize: '8px',
+                fontSize: '10px',
                 color: '#333',
                 textOutline: 'none'
             }
         }
     }],
     tooltip: {
-        pointFormat: '{point.name}: <b>{point.value}</b> aluno(s)'
+        formatter: function(this: Highcharts.TooltipFormatterContextObject): string {
+            const point = this.point as any;
+            if (point['hc-key'] === 'br-sc' && scData) {
+                return `${point.name}<br/><b>Total: ${point.value}</b><br/>Joinville: ${scData.joinville}<br/>Demais: ${scData.others}`;
+            }
+            return `${point.name}: <b>${point.value}</b> aluno(s)`;
+        }
     },
   };
 

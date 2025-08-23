@@ -24,6 +24,7 @@ type FilterValues = {
   categoriaIngresso: string[],
   estadoCivil: string[],
   nacionalidade: string[],
+  semestreIngresso: string[],
 }
 
 interface FiltersProps {
@@ -38,6 +39,7 @@ interface FiltersProps {
     categories: string[];
     maritalStatus: string[];
     nationalities: string[];
+    semesters: string[];
   };
   initialRanges: {
     iaa: number[];
@@ -249,6 +251,7 @@ export function Filters({ onFilterChange, filters, options, initialRanges }: Fil
              />
           </div>
         </div>
+        <MultiSelectFilter label="Semestre de Ingresso" selected={currentFilters.semestreIngresso} onSelectionChange={(v) => handleMultiSelectChange('semestreIngresso', v)} options={options.semesters} />
         <MultiSelectFilter label="Curso" selected={currentFilters.nomeCurso} onSelectionChange={(v) => handleMultiSelectChange('nomeCurso', v)} options={options.courses} />
         <MultiSelectFilter label="Situação" selected={currentFilters.situacao} onSelectionChange={(v) => handleMultiSelectChange('situacao', v)} options={options.situations} />
         <MultiSelectFilter label="Gênero" selected={currentFilters.sexo} onSelectionChange={(v) => handleMultiSelectChange('sexo', v)} options={options.genders} />

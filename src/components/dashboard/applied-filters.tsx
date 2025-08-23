@@ -17,6 +17,7 @@ type FilterValues = {
   categoriaIngresso: string[],
   estadoCivil: string[],
   nacionalidade: string[],
+  semestreIngresso: string[],
 }
 
 interface AppliedFiltersProps {
@@ -38,6 +39,7 @@ const filterLabels: { [key: string]: string } = {
   categoriaIngresso: "Categoria de Ingresso",
   estadoCivil: "Estado Civil",
   nacionalidade: "Nacionalidade",
+  semestreIngresso: "Semestre Ingresso",
 };
 
 export function AppliedFilters({ filters, onFilterChange, options }: AppliedFiltersProps) {
