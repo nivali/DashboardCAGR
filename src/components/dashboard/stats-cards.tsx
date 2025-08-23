@@ -51,7 +51,7 @@ export function StatsCards({ students }: StatsCardsProps) {
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       <StatCard 
         icon={<Users className="h-4 w-4 text-muted-foreground" />} 
-        title="Total de Alunos" 
+        title="Total de Alunos (Filtrado)" 
         value={stats.total.toLocaleString()} 
       />
       <StatCard 
@@ -63,7 +63,7 @@ export function StatsCards({ students }: StatsCardsProps) {
       <StatCard 
         icon={<Percent className="h-4 w-4 text-muted-foreground" />} 
         title="IAA Médio" 
-        value={stats.avgIaa.toFixed(3)} 
+        value={(stats.avgIaa / 1000).toFixed(3)} 
       />
       <StatCard 
         icon={<GraduationCap className="h-4 w-4 text-muted-foreground" />} 

@@ -1,13 +1,15 @@
 
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
+import html2canvas from 'html2canvas';
 import type { Student } from '@/types/student';
 import { Button } from '@/components/ui/button';
 import { Filters } from '@/components/dashboard/filters';
 import { StatsCards } from '@/components/dashboard/stats-cards';
 import { DataCharts } from '@/components/dashboard/data-charts';
-import { RefreshCcw } from 'lucide-react';
+import { AppliedFilters } from '@/components/dashboard/applied-filters';
+import { RefreshCcw, Download, Loader2 } from 'lucide-react';
 
 interface DashboardProps {
   students: Student[];
@@ -15,6 +17,9 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ students, onReset }: DashboardProps) {
+  const [isSaving, setIsSaving] = useState(false);
+  const dashboardRef = useRef<HTMLDivElement>(null);
+
   const { 
     minIaa, maxIaa, availableYears, 
     minAge, maxAge,
@@ -23,7 +28,7 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
   } = useMemo(() => {
     if (students.length === 0) {
       return { 
-        minIaa: 0, maxIaa: 10, availableYears: [],
+        minIaa: 0, maxIaa: 10000, availableYears: [],
         minAge: 15, maxAge: 80,
         courses: [], situations: [], genders: [], races: [], entryForms: [],
         categories: [], maritalStatus: [], nationalities: []
@@ -82,9 +87,33 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
     });
   }, [students, filters]);
 
+  const handleSaveDashboard = async () => {
+    if (!dashboardRef.current) return;
+    setIsSaving(true);
+    try {
+        const canvas = await html2canvas(dashboardRef.current, {
+            useCORS: true,
+            scale: 2, 
+            backgroundColor: 'hsl(var(--background))'
+        });
+        const link = document.createElement('a');
+        link.download = 'dashboard-alunovis.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    } catch (error) {
+        console.error("Erro ao salvar o dashboard:", error);
+    } finally {
+        setIsSaving(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <Button onClick={handleSaveDashboard} variant="outline" disabled={isSaving}>
+            {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+            {isSaving ? "Salvando..." : "Salvar Painel"}
+        </Button>
         <Button onClick={onReset} variant="outline">
           <RefreshCcw className="mr-2 h-4 w-4" />
           Carregar Novo Arquivo
@@ -103,7 +132,8 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
             }}
           />
         </aside>
-        <div className="lg:col-span-3 space-y-8">
+        <div className="lg:col-span-3 space-y-8" ref={dashboardRef}>
+           <AppliedFilters filters={filters} onFilterChange={setFilters} options={{...options, ...initialRanges}} />
           <StatsCards students={filteredStudents} />
           <DataCharts students={filteredStudents} />
         </div>

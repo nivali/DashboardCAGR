@@ -27,7 +27,7 @@ const parseAndTransformData = (csvText: string): Student[] => {
         "nomeCurso", "Situacao", "Sexo", "racaCor", "dataNascimento", 
         "Naturalidade", "formaIngresso", "IAA-indiceAproveitamentoAcumulado", 
         "MunicipioSG", "UFSG", "anoSemestreIngresso", "categoriaIngresso", "estadoCivil",
-        "Nacionalidade" // Adicionado
+        "Nacionalidade"
     ];
     
     const indices: { [key: string]: number } = {};
@@ -71,7 +71,7 @@ const parseAndTransformData = (csvText: string): Student[] => {
         const semestersInCourse = (currentYear - anoIngresso) * 2 + (currentSemester - semestreIngresso) + 1;
 
         const iaaStr = values[indices['IAA-indiceAproveitamentoAcumulado']];
-        const iaa = iaaStr ? parseFloat(iaaStr.replace(',', '.')) / 1000 : 0;
+        const iaa = iaaStr ? parseFloat(iaaStr.replace(',', '.')) : 0;
 
         return {
             nomeCurso: (values[indices.nomeCurso] || 'N/A').replace(/\[.*?\]/g, '').trim(),
@@ -145,7 +145,7 @@ export default function FileUploader({ onDataLoaded }: FileUploaderProps) {
           <CardTitle className="mt-4">Carregar arquivo CSV</CardTitle>
           <CardDescription>
             Selecione o arquivo com os dados sociodemográficos dos alunos. <br/>
-            O arquivo deve usar ';' como separador de colunas.
+            O arquivo deve usar ';' como separador de colunas e codificação LATIN1.
           </CardDescription>
         </CardHeader>
         <CardContent>
