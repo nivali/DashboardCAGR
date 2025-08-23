@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useCallback } from 'react';
@@ -27,7 +28,7 @@ const parseAndTransformData = (csvText: string): Student[] => {
         "nomeCurso", "Situacao", "Sexo", "racaCor", "dataNascimento", 
         "Naturalidade", "formaIngresso", "IAA-indiceAproveitamentoAcumulado", 
         "MunicipioSG", "UFSG", "anoSemestreIngresso", "categoriaIngresso", "estadoCivil",
-        "Nacionalidade"
+        "Nacionalidade", "IAP-indiceAproveitamentoAprovacoes"
     ];
     
     const indices: { [key: string]: number } = {};
@@ -72,6 +73,9 @@ const parseAndTransformData = (csvText: string): Student[] => {
 
         const iaaStr = values[indices['IAA-indiceAproveitamentoAcumulado']];
         const iaa = iaaStr ? parseFloat(iaaStr.replace(',', '.')) : 0;
+        
+        const iapStr = values[indices['IAP-indiceAproveitamentoAprovacoes']];
+        const iap = iapStr ? parseFloat(iapStr.replace(',', '.')) : 0;
 
         return {
             nomeCurso: (values[indices.nomeCurso] || 'N/A').replace(/\[.*?\]/g, '').trim(),
@@ -88,6 +92,7 @@ const parseAndTransformData = (csvText: string): Student[] => {
             categoriaIngresso: values[indices.categoriaIngresso] || 'N/A',
             estadoCivil: values[indices.estadoCivil] || 'N/A',
             iaa: isNaN(iaa) ? 0 : iaa,
+            iap: isNaN(iap) ? 0 : iap,
             municipioSG: values[indices.MunicipioSG] || 'N/A',
             ufSG: values[indices.UFSG] || 'N/A',
             anoSemestreIngresso: parseInt(anoSemestreIngressoStr),
@@ -172,3 +177,5 @@ export default function FileUploader({ onDataLoaded }: FileUploaderProps) {
     </div>
   );
 }
+
+    

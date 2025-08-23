@@ -11,7 +11,7 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from "@/components/ui/chart"
-import { Bar, BarChart, Pie, PieChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from "recharts"
+import { Bar, BarChart, Pie, PieChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, LineChart, Line } from "recharts"
 import { Button } from "../ui/button"
 import { X } from "lucide-react"
 
@@ -66,7 +66,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart }: DataCharts
     const { 
         genderData, raceData, situationData, nationalityData,
         iaaByGenderData, iaaByRaceData, iaaByOriginData, iaaQuartiles,
-        iaaDistributionData
+        iaaDistributionData, failureRateBySemesterData
     } = useMemo(() => {
         const genderCounts: { [key: string]: number } = {}
         const raceCounts: { [key: string]: number } = {}
@@ -76,6 +76,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart }: DataCharts
             "0-1000": 0, "1001-2000": 0, "2001-3000": 0, "3001-4000": 0, "4001-5000": 0,
             "5001-6000": 0, "6001-7000": 0, "7001-8000": 0, "8001-9000": 0, "9001-10000": 0
         };
+        const failureRateBySemester: { [semester: number]: { totalRate: number, count: number } } = {};
         
         const sortedIaa = students.map(s => s.iaa).filter(iaa => iaa > 0).sort((a, b) => a - b);
         const q1 = sortedIaa[Math.floor(sortedIaa.length / 4)] || 0;
@@ -112,9 +113,26 @@ export function DataCharts({ students, hiddenCharts, onToggleChart }: DataCharts
                 const origin = student.municipioSG.toLowerCase() === 'joinville' ? 'Joinville' : 'Externo';
                 iaaOriginPairs.push({ primary: iaaQuartile, secondary: origin });
             }
+
+            if (student.iap !== undefined && student.iaa > 0 && student.iap > 0) {
+              const failureRate = student.iaa - student.iap;
+              const semester = student.semestersInCourse;
+              if (!failureRateBySemester[semester]) {
+                failureRateBySemester[semester] = { totalRate: 0, count: 0 };
+              }
+              failureRateBySemester[semester].totalRate += failureRate;
+              failureRateBySemester[semester].count++;
+            }
         }
         
         const toChartData = (counts: {[key: string]: number}) => Object.entries(counts).map(([name, value], index) => ({ name, value, fill: `hsl(var(--chart-${(index % 5) + 1}))`}));
+
+        const calculatedFailureRateData = Object.entries(failureRateBySemester)
+          .map(([semester, data]) => ({
+            name: `${semester}º Sem.`,
+            value: data.count > 0 ? parseFloat((data.totalRate / data.count).toFixed(2)) : 0,
+          }))
+          .sort((a, b) => parseInt(a.name) - parseInt(b.name));
 
         return {
             genderData: toChartData(genderCounts),
@@ -126,6 +144,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart }: DataCharts
             iaaByOriginData: aggregateNestedData(iaaOriginPairs),
             iaaQuartiles: {q1, q2, q3},
             iaaDistributionData: toChartData(iaaRanges),
+            failureRateBySemesterData: calculatedFailureRateData,
         }
     }, [students])
 
@@ -159,64 +178,77 @@ export function DataCharts({ students, hiddenCharts, onToggleChart }: DataCharts
     const charts = [
       { id: 'iaaDistribution', title: 'Distribuição de IAA', className: 'lg:col-span-3', component: (
           <ChartCard title="Distribuição de IAA por Faixa" className="lg:col-span-3" onRemove={() => onToggleChart('iaaDistribution')}>
-              <ChartContainer config={iaaDistributionConfig} className="min-h-[200px] w-full">
-                  <BarChart data={iaaDistributionData} margin={{ left: 0, right: 30 }}>
-                      <XAxis dataKey="name" angle={-45} textAnchor="end" height={60} interval={0} />
+              <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={iaaDistributionData} margin={{ left: 0, right: 30, bottom: 40 }}>
+                      <XAxis dataKey="name" angle={-45} textAnchor="end" interval={0} />
                       <YAxis />
                       <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
-                      <Bar dataKey="value" radius={5} />
+                      <Bar dataKey="value" radius={5} fill="var(--color-iaaDistribution)" />
                   </BarChart>
-              </ChartContainer>
+              </ResponsiveContainer>
           </ChartCard>
       )},
       { id: 'gender', title: 'Distribuição por Gênero', component: (
           <ChartCard title="Distribuição por Gênero" onRemove={() => onToggleChart('gender')}>
-              <ChartContainer config={genderConfig} className="min-h-[200px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                       <Pie data={genderData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label />
                       <Tooltip content={<ChartTooltipContent hideLabel />} />
                       <ChartLegend content={<ChartLegendContent />} />
                   </PieChart>
-               </ChartContainer>
+               </ResponsiveContainer>
           </ChartCard>
       )},
       { id: 'situation', title: 'Distribuição por Situação', component: (
            <ChartCard title="Distribuição por Situação" onRemove={() => onToggleChart('situation')}>
-              <ChartContainer config={situationConfig} className="min-h-[200px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                       <Pie data={situationData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={80} label />
                       <Tooltip content={<ChartTooltipContent hideLabel />} />
                       <ChartLegend content={<ChartLegendContent />} />
                   </PieChart>
-              </ChartContainer>
+              </ResponsiveContainer>
           </ChartCard>
       )},
       { id: 'nationality', title: 'Distribuição por Nacionalidade', component: (
           <ChartCard title="Distribuição por Nacionalidade" onRemove={() => onToggleChart('nationality')}>
-              <ChartContainer config={nationalityConfig} className="min-h-[200px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                       <Pie data={nationalityData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label />
                       <Tooltip content={<ChartTooltipContent hideLabel />} />
                       <ChartLegend content={<ChartLegendContent />} />
                   </PieChart>
-               </ChartContainer>
+               </ResponsiveContainer>
           </ChartCard>
       )},
       { id: 'race', title: 'Distribuição por Raça/Cor', className: 'lg:col-span-3', component: (
           <ChartCard title="Distribuição por Raça/Cor" className="lg:col-span-3" onRemove={() => onToggleChart('race')}>
-              <ChartContainer config={raceConfig} className="min-h-[200px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={raceData} layout="vertical" margin={{ left: 30, right: 30 }}>
                       <XAxis type="number" hide/>
                       <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={80} />
                       <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
-                      <Bar dataKey="value" radius={5} />
+                      <Bar dataKey="value" radius={5} fill="var(--color-race)" />
                   </BarChart>
-              </ChartContainer>
+              </ResponsiveContainer>
           </ChartCard>
+      )},
+       { id: 'failureRate', title: 'Taxa de Reprovação Média por Semestre', className: 'lg:col-span-3', component: (
+        <ChartCard title="Taxa de Reprovação Média por Semestre" description="Diferença média entre IAA e IAP" onRemove={() => onToggleChart('failureRate')}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={failureRateBySemesterData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
+              <Legend />
+              <Line type="monotone" dataKey="value" stroke="hsl(var(--chart-1))" strokeWidth={2} name="Taxa de Reprovação Média" />
+            </LineChart>
+          </ResponsiveContainer>
+        </ChartCard>
       )},
       { id: 'iaaByGender', title: 'Quartis de IAA por Gênero', component: (
            <ChartCard title="Quartis de IAA por Gênero" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`} onRemove={() => onToggleChart('iaaByGender')}>
-              <ChartContainer config={iaaByGenderConfig} className="min-h-[200px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={iaaByGenderData} layout="vertical">
                       <XAxis type="number" hide />
                       <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={80} />
@@ -226,12 +258,12 @@ export function DataCharts({ students, hiddenCharts, onToggleChart }: DataCharts
                          <Bar key={key} dataKey={key} stackId="a" fill={iaaByGenderConfig[key].color} radius={5} />
                       ))}
                   </BarChart>
-              </ChartContainer>
+              </ResponsiveContainer>
           </ChartCard>
       )},
       { id: 'iaaByRace', title: 'Quartis de IAA por Raça/Cor', component: (
           <ChartCard title="Quartis de IAA por Raça/Cor" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`} onRemove={() => onToggleChart('iaaByRace')}>
-              <ChartContainer config={iaaByRaceConfig} className="min-h-[200px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
                    <BarChart data={iaaByRaceData} layout="horizontal">
                       <YAxis />
                       <XAxis dataKey="name" type="category" tickLine={false} axisLine={false} />
@@ -241,12 +273,12 @@ export function DataCharts({ students, hiddenCharts, onToggleChart }: DataCharts
                          <Bar key={key} dataKey={key} stackId="a" fill={iaaByRaceConfig[key].color} radius={[5, 5, 0, 0]} />
                       ))}
                   </BarChart>
-              </ChartContainer>
+              </ResponsiveContainer>
           </ChartCard>
       )},
       { id: 'iaaByOrigin', title: 'Quartis de IAA por Origem', component: (
           <ChartCard title="Quartis de IAA por Origem" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`} onRemove={() => onToggleChart('iaaByOrigin')}>
-              <ChartContainer config={iaaByOriginConfig} className="min-h-[200px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={iaaByOriginData} layout="horizontal">
                       <YAxis />
                       <XAxis dataKey="name" type="category" tickLine={false} axisLine={false} />
@@ -256,7 +288,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart }: DataCharts
                          <Bar key={key} dataKey={key} stackId="a" fill={iaaByOriginConfig[key].color} radius={[5, 5, 0, 0]} />
                       ))}
                   </BarChart>
-              </ChartContainer>
+              </ResponsiveContainer>
           </ChartCard>
       )}
     ];
@@ -272,3 +304,5 @@ export function DataCharts({ students, hiddenCharts, onToggleChart }: DataCharts
     </div>
   )
 }
+
+    

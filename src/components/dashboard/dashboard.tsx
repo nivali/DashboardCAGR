@@ -22,6 +22,7 @@ const chartNames: { [key: string]: string } = {
     stats: 'Cartões de Estatísticas',
     heatmap: 'Mapa de Calor',
     iaaDistribution: 'Distribuição de IAA',
+    failureRate: 'Taxa de Reprovação',
     gender: 'Gráfico de Gênero',
     situation: 'Gráfico de Situação',
     nationality: 'Gráfico de Nacionalidade',
@@ -39,18 +40,8 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
 
   useEffect(() => {
     if (dashboardRef.current) {
-        // We need to fetch the actual RGB value of the --background variable
-        // as html2canvas has issues with `hsl(var(--...))` format.
-        const bgVar = getComputedStyle(document.documentElement).getPropertyValue('--background').trim();
-        
-        // A little trick to convert CSS variable to a usable format like rgb()
-        const tempDiv = document.createElement('div');
-        tempDiv.style.color = `hsl(${bgVar})`;
-        document.body.appendChild(tempDiv);
-        const color = getComputedStyle(tempDiv).color;
-        document.body.removeChild(tempDiv);
-        
-        setBackgroundColor(color || 'rgb(255, 255, 255)');
+        const bgStyle = window.getComputedStyle(document.body).backgroundColor;
+        setBackgroundColor(bgStyle || 'rgb(255, 255, 255)');
     }
   }, []);
 
@@ -241,3 +232,5 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
     </div>
   );
 }
+
+    

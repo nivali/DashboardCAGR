@@ -1,3 +1,4 @@
+
 export interface Student {
   nomeCurso: string;
   situacao: string;
@@ -6,13 +7,14 @@ export interface Student {
   dataNascimento: string;
   age: number;
   naturalidade: string;
-  nacionalidade: string; // Adicionado
+  nacionalidade: string;
   unidadeFederativa: string;
   cidadeNaturalidade: string;
   formaIngresso: string;
   categoriaIngresso: string;
   estadoCivil: string;
   iaa: number;
+  iap: number;
   municipioSG: string;
   ufSG: string;
   anoSemestreIngresso: number;
@@ -20,3 +22,5 @@ export interface Student {
   anoIngresso: number;
   semestreIngresso: number;
 }
+
+    
