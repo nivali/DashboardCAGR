@@ -10,6 +10,7 @@ import { StatsCards } from '@/components/dashboard/stats-cards';
 import { DataCharts } from '@/components/dashboard/data-charts';
 import { AppliedFilters } from '@/components/dashboard/applied-filters';
 import { RefreshCcw, Download, Loader2 } from 'lucide-react';
+import { BrazilHeatmap } from './brazil-heatmap';
 
 interface DashboardProps {
   students: Student[];
@@ -57,13 +58,9 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
   }, [students]);
   
   const initialRanges = useMemo(() => {
-    const lastThreeYears = availableYears.slice(-3);
-    const startYear = lastThreeYears.length > 0 ? lastThreeYears[0] : (availableYears[0] || 2010);
-    const endYear = availableYears.length > 0 ? availableYears[availableYears.length - 1] : new Date().getFullYear();
-
     return {
         iaa: [minIaa, maxIaa],
-        year: [startYear, endYear],
+        year: [availableYears[0] || 2010, availableYears[availableYears.length - 1] || new Date().getFullYear()],
         age: [minAge, maxAge],
     };
   }, [minIaa, maxIaa, availableYears, minAge, maxAge]);
@@ -73,7 +70,7 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
     year: initialRanges.year,
     age: initialRanges.age,
     nomeCurso: [] as string[],
-    situacao: ["Regular"] as string[],
+    situacao: [] as string[],
     sexo: [] as string[],
     racaCor: [] as string[],
     formaIngresso: [] as string[],
@@ -152,6 +149,9 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
            <AppliedFilters filters={filters} onFilterChange={setFilters} options={initialRanges} />
           <StatsCards students={filteredStudents} />
           <DataCharts students={filteredStudents} />
+          <div className="md:col-span-3">
+              <BrazilHeatmap students={filteredStudents} />
+          </div>
         </div>
       </div>
     </div>

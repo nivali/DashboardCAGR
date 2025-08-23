@@ -12,7 +12,6 @@ import {
   ChartLegendContent,
 } from "@/components/ui/chart"
 import { Bar, BarChart, Pie, PieChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from "recharts"
-import { BrazilHeatmap } from "./brazil-heatmap"
 
 interface DataChartsProps {
   students: Student[]
@@ -212,9 +211,6 @@ export function DataCharts({ students }: DataChartsProps) {
             </ChartContainer>
         </ChartCard>
 
-        <div className="md:col-span-3">
-            <BrazilHeatmap students={students} />
-        </div>
     </div>
   )
 }
