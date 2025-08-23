@@ -11,7 +11,7 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from "@/components/ui/chart"
-import { Bar, BarChart, Pie, PieChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts"
+import { Bar, BarChart, Pie, PieChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from "recharts"
 
 interface DataChartsProps {
   students: Student[]
@@ -123,45 +123,45 @@ export function DataCharts({ students }: DataChartsProps) {
   return (
     <div className="grid gap-4 md:grid-cols-2">
         <ChartCard title="Distribuição por Gênero">
-            <ChartContainer config={chartConfig(genderData)} className="w-full h-full">
+            <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                     <Pie data={genderData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label />
-                    <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+                    <Tooltip content={<ChartTooltipContent hideLabel />} />
                     <ChartLegend content={<ChartLegendContent />} />
                 </PieChart>
-             </ChartContainer>
+             </ResponsiveContainer>
         </ChartCard>
         <ChartCard title="Distribuição por Raça/Cor">
-            <ChartContainer config={chartConfig(raceData)} className="w-full h-full">
+            <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={raceData} layout="vertical" margin={{ left: 30, right: 30 }}>
                     <XAxis type="number" hide/>
                     <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={80} />
                     <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
                     <Bar dataKey="value" radius={5} />
                 </BarChart>
-            </ChartContainer>
+            </ResponsiveContainer>
         </ChartCard>
         <ChartCard title="Top 10 Cidades de Origem">
-            <ChartContainer config={chartConfig(cityData)} className="w-full h-full">
+            <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={cityData} layout="vertical" margin={{ left: 30, right: 30 }}>
                     <XAxis type="number" hide />
                     <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={120} fontSize={12} interval={0} />
                     <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
                     <Bar dataKey="value" radius={5} />
                 </BarChart>
-            </ChartContainer>
+            </ResponsiveContainer>
         </ChartCard>
          <ChartCard title="Distribuição por Situação">
-            <ChartContainer config={chartConfig(situationData)} className="w-full h-full">
+            <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                     <Pie data={situationData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={80} label />
-                    <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+                    <Tooltip content={<ChartTooltipContent hideLabel />} />
                     <ChartLegend content={<ChartLegendContent />} />
                 </PieChart>
-            </ChartContainer>
+            </ResponsiveContainer>
         </ChartCard>
         <ChartCard title="Quartis de IAA por Gênero" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`}>
-            <ChartContainer config={iaaByGenderConfig} className="w-full h-full">
+            <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={iaaByGenderData} layout="vertical">
                     <XAxis type="number" hide />
                     <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={80} />
@@ -171,10 +171,10 @@ export function DataCharts({ students }: DataChartsProps) {
                        <Bar key={key} dataKey={key} stackId="a" fill={iaaByGenderConfig[key].color} radius={5} />
                     ))}
                 </BarChart>
-            </ChartContainer>
+            </ResponsiveContainer>
         </ChartCard>
         <ChartCard title="Quartis de IAA por Raça/Cor" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`}>
-            <ChartContainer config={iaaByRaceConfig} className="w-full h-full">
+            <ResponsiveContainer width="100%" height="100%">
                  <BarChart data={iaaByRaceData} layout="horizontal">
                     <YAxis />
                     <XAxis dataKey="name" type="category" tickLine={false} axisLine={false} />
@@ -184,8 +184,10 @@ export function DataCharts({ students }: DataChartsProps) {
                        <Bar key={key} dataKey={key} stackId="a" fill={iaaByRaceConfig[key].color} radius={[5, 5, 0, 0]} />
                     ))}
                 </BarChart>
-            </ChartContainer>
+            </ResponsiveContainer>
         </ChartCard>
     </div>
   )
 }
+
+    
