@@ -28,15 +28,29 @@ export function BrazilHeatmap({ students }: BrazilHeatmapProps) {
 
   const maxCount = useMemo(() => Math.max(1, ...Object.values(stateCounts)), [stateCounts]);
 
-  const getColor = (uf: string | undefined) => {
+  const getColor = (uf: string | undefined, forLegend = false) => {
     if(!uf) return 'hsl(210 20% 90%)';
     const count = stateCounts[uf] || 0;
-    if (count === 0) return 'hsl(210 20% 90%)'; // Muted color for no data
-    const intensity = Math.round((count / maxCount) * (100 - 40) + 40); // from 40% to 100% lightness
-    return `hsl(var(--primary), ${100 - intensity}%)`;
+    if (count === 0 && !forLegend) return 'hsl(210 20% 90%)';
+    
+    // Base color is Primary: HSL(210, 65%, 50%)
+    const hue = 210;
+    const saturation = 65;
+    
+    // We vary lightness from 60% (for low values, lighter color) down to 10% (for high values, darker color)
+    // The base lightness is 50%, so we'll go from 60 to 10.
+    const maxLightness = 60; // Lighter
+    const minLightness = 10; // Darker
+    
+    const intensity = forLegend 
+        ? 1 // for the "Mais" legend color
+        : count > 0 ? count / maxCount : 0; // for map states
+        
+    const lightness = maxLightness - (intensity * (maxLightness - minLightness));
+    
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
   };
   
-  // SVG paths for Brazilian states
   const states = {
     AC: { path: "M 83,183 L 70,200 L 98,228 L 130,220 L 122,206 L 106,182 z", name: "Acre" },
     AL: { path: "M 504,212 L 493,212 L 498,224 L 512,220 z", name: "Alagoas" },
@@ -67,8 +81,6 @@ export function BrazilHeatmap({ students }: BrazilHeatmapProps) {
     TO: { path: "M 350,200 L 320,260 L 380,260 L 400,200 z", name: "Tocantins" },
   };
 
-  const firstStateWithStudents = Object.keys(states).find(s => (stateCounts[s] || 0) > 0);
-
   return (
     <Card className="shadow-sm hover:shadow-md transition-shadow h-full">
       <CardHeader>
@@ -91,10 +103,10 @@ export function BrazilHeatmap({ students }: BrazilHeatmapProps) {
                 <div className="flex items-center gap-2">
                     <span>Menos</span>
                     <div className="flex">
-                        <div className="w-4 h-4" style={{backgroundColor: getColor(firstStateWithStudents)}}></div>
-                        <div className="w-4 h-4" style={{backgroundColor: `hsl(var(--primary), 30%)`}}></div>
-                        <div className="w-4 h-4" style={{backgroundColor: `hsl(var(--primary), 10%)`}}></div>
-                        <div className="w-4 h-4" style={{backgroundColor: `hsl(var(--primary), 0%)`}}></div>
+                        <div className="w-4 h-4" style={{backgroundColor: 'hsl(210, 65%, 60%)'}}></div>
+                        <div className="w-4 h-4" style={{backgroundColor: 'hsl(210, 65%, 40%)'}}></div>
+                        <div className="w-4 h-4" style={{backgroundColor: 'hsl(210, 65%, 20%)'}}></div>
+                        <div className="w-4 h-4" style={{backgroundColor: 'hsl(210, 65%, 10%)'}}></div>
                     </div>
                     <span>Mais</span>
                 </div>
@@ -104,4 +116,3 @@ export function BrazilHeatmap({ students }: BrazilHeatmapProps) {
     </Card>
   );
 }
-
