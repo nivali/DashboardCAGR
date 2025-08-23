@@ -12,13 +12,20 @@ import {
   ChartLegendContent,
 } from "@/components/ui/chart"
 import { Bar, BarChart, Pie, PieChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from "recharts"
+import { Button } from "../ui/button"
+import { X } from "lucide-react"
 
 interface DataChartsProps {
-  students: Student[]
+  students: Student[];
+  hiddenCharts: string[];
+  onToggleChart: (chartId: string) => void;
 }
 
-const ChartCard: React.FC<React.PropsWithChildren<{ title: string, description?: string, className?: string }>> = ({ title, description, children, className }) => (
-    <Card className={`shadow-sm hover:shadow-md transition-shadow ${className}`}>
+const ChartCard: React.FC<React.PropsWithChildren<{ title: string, description?: string, className?: string, onRemove: () => void }>> = ({ title, description, children, className, onRemove }) => (
+    <Card className={`shadow-sm hover:shadow-md transition-shadow relative ${className}`}>
+        <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-6 w-6" onClick={onRemove}>
+            <X className="h-4 w-4" />
+        </Button>
         <CardHeader>
             <CardTitle>{title}</CardTitle>
             {description && <CardDescription>{description}</CardDescription>}
@@ -55,7 +62,7 @@ const aggregateNestedData = (data: { primary: string; secondary: string }[]): { 
 };
 
 
-export function DataCharts({ students }: DataChartsProps) {
+export function DataCharts({ students, hiddenCharts, onToggleChart }: DataChartsProps) {
     const { 
         genderData, raceData, situationData, nationalityData,
         iaaByGenderData, iaaByRaceData, iaaByOriginData, iaaQuartiles
@@ -129,88 +136,108 @@ export function DataCharts({ students }: DataChartsProps) {
     const iaaByGenderConfig = stackedChartConfig(iaaByGenderData);
     const iaaByRaceConfig = stackedChartConfig(iaaByRaceData);
     const iaaByOriginConfig = stackedChartConfig(iaaByOriginData);
+    
+    const charts = [
+      { id: 'gender', title: 'Distribuição por Gênero', component: (
+          <ChartCard title="Distribuição por Gênero" onRemove={() => onToggleChart('gender')}>
+              <ChartContainer config={genderConfig} className="min-h-[200px] w-full">
+                  <PieChart>
+                      <Pie data={genderData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label />
+                      <Tooltip content={<ChartTooltipContent hideLabel />} />
+                      <ChartLegend content={<ChartLegendContent />} />
+                  </PieChart>
+               </ChartContainer>
+          </ChartCard>
+      )},
+      { id: 'situation', title: 'Distribuição por Situação', component: (
+           <ChartCard title="Distribuição por Situação" onRemove={() => onToggleChart('situation')}>
+              <ChartContainer config={situationConfig} className="min-h-[200px] w-full">
+                  <PieChart>
+                      <Pie data={situationData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={80} label />
+                      <Tooltip content={<ChartTooltipContent hideLabel />} />
+                      <ChartLegend content={<ChartLegendContent />} />
+                  </PieChart>
+              </ChartContainer>
+          </ChartCard>
+      )},
+      { id: 'nationality', title: 'Distribuição por Nacionalidade', component: (
+          <ChartCard title="Distribuição por Nacionalidade" onRemove={() => onToggleChart('nationality')}>
+              <ChartContainer config={nationalityConfig} className="min-h-[200px] w-full">
+                  <PieChart>
+                      <Pie data={nationalityData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label />
+                      <Tooltip content={<ChartTooltipContent hideLabel />} />
+                      <ChartLegend content={<ChartLegendContent />} />
+                  </PieChart>
+               </ChartContainer>
+          </ChartCard>
+      )},
+      { id: 'race', title: 'Distribuição por Raça/Cor', className: 'lg:col-span-3', component: (
+          <ChartCard title="Distribuição por Raça/Cor" className="lg:col-span-3" onRemove={() => onToggleChart('race')}>
+              <ChartContainer config={raceConfig} className="min-h-[200px] w-full">
+                  <BarChart data={raceData} layout="vertical" margin={{ left: 30, right: 30 }}>
+                      <XAxis type="number" hide/>
+                      <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={80} />
+                      <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
+                      <Bar dataKey="value" radius={5} />
+                  </BarChart>
+              </ChartContainer>
+          </ChartCard>
+      )},
+      { id: 'iaaByGender', title: 'Quartis de IAA por Gênero', component: (
+           <ChartCard title="Quartis de IAA por Gênero" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`} onRemove={() => onToggleChart('iaaByGender')}>
+              <ChartContainer config={iaaByGenderConfig} className="min-h-[200px] w-full">
+                  <BarChart data={iaaByGenderData} layout="vertical">
+                      <XAxis type="number" hide />
+                      <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={80} />
+                      <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
+                      <Legend />
+                      {Object.keys(iaaByGenderConfig).map(key => (
+                         <Bar key={key} dataKey={key} stackId="a" fill={iaaByGenderConfig[key].color} radius={5} />
+                      ))}
+                  </BarChart>
+              </ChartContainer>
+          </ChartCard>
+      )},
+      { id: 'iaaByRace', title: 'Quartis de IAA por Raça/Cor', component: (
+          <ChartCard title="Quartis de IAA por Raça/Cor" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`} onRemove={() => onToggleChart('iaaByRace')}>
+              <ChartContainer config={iaaByRaceConfig} className="min-h-[200px] w-full">
+                   <BarChart data={iaaByRaceData} layout="horizontal">
+                      <YAxis />
+                      <XAxis dataKey="name" type="category" tickLine={false} axisLine={false} />
+                      <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
+                      <Legend />
+                      {Object.keys(iaaByRaceConfig).map(key => (
+                         <Bar key={key} dataKey={key} stackId="a" fill={iaaByRaceConfig[key].color} radius={[5, 5, 0, 0]} />
+                      ))}
+                  </BarChart>
+              </ChartContainer>
+          </ChartCard>
+      )},
+      { id: 'iaaByOrigin', title: 'Quartis de IAA por Origem', component: (
+          <ChartCard title="Quartis de IAA por Origem" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`} onRemove={() => onToggleChart('iaaByOrigin')}>
+              <ChartContainer config={iaaByOriginConfig} className="min-h-[200px] w-full">
+                  <BarChart data={iaaByOriginData} layout="horizontal">
+                      <YAxis />
+                      <XAxis dataKey="name" type="category" tickLine={false} axisLine={false} />
+                      <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
+                      <Legend />
+                      {Object.keys(iaaByOriginConfig).map(key => (
+                         <Bar key={key} dataKey={key} stackId="a" fill={iaaByOriginConfig[key].color} radius={[5, 5, 0, 0]} />
+                      ))}
+                  </BarChart>
+              </ChartContainer>
+          </ChartCard>
+      )}
+    ];
+
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <ChartCard title="Distribuição por Gênero">
-            <ChartContainer config={genderConfig} className="min-h-[200px] w-full">
-                <PieChart>
-                    <Pie data={genderData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label />
-                    <Tooltip content={<ChartTooltipContent hideLabel />} />
-                    <ChartLegend content={<ChartLegendContent />} />
-                </PieChart>
-             </ChartContainer>
-        </ChartCard>
-         <ChartCard title="Distribuição por Situação">
-            <ChartContainer config={situationConfig} className="min-h-[200px] w-full">
-                <PieChart>
-                    <Pie data={situationData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={80} label />
-                    <Tooltip content={<ChartTooltipContent hideLabel />} />
-                    <ChartLegend content={<ChartLegendContent />} />
-                </PieChart>
-            </ChartContainer>
-        </ChartCard>
-        <ChartCard title="Distribuição por Nacionalidade">
-            <ChartContainer config={nationalityConfig} className="min-h-[200px] w-full">
-                <PieChart>
-                    <Pie data={nationalityData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label />
-                    <Tooltip content={<ChartTooltipContent hideLabel />} />
-                    <ChartLegend content={<ChartLegendContent />} />
-                </PieChart>
-             </ChartContainer>
-        </ChartCard>
-
-        <ChartCard title="Distribuição por Raça/Cor" className="lg:col-span-3">
-            <ChartContainer config={raceConfig} className="min-h-[200px] w-full">
-                <BarChart data={raceData} layout="vertical" margin={{ left: 30, right: 30 }}>
-                    <XAxis type="number" hide/>
-                    <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={80} />
-                    <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
-                    <Bar dataKey="value" radius={5} />
-                </BarChart>
-            </ChartContainer>
-        </ChartCard>
-        
-        <ChartCard title="Quartis de IAA por Gênero" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`}>
-            <ChartContainer config={iaaByGenderConfig} className="min-h-[200px] w-full">
-                <BarChart data={iaaByGenderData} layout="vertical">
-                    <XAxis type="number" hide />
-                    <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={80} />
-                    <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
-                    <Legend />
-                    {Object.keys(iaaByGenderConfig).map(key => (
-                       <Bar key={key} dataKey={key} stackId="a" fill={iaaByGenderConfig[key].color} radius={5} />
-                    ))}
-                </BarChart>
-            </ChartContainer>
-        </ChartCard>
-        <ChartCard title="Quartis de IAA por Raça/Cor" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`}>
-            <ChartContainer config={iaaByRaceConfig} className="min-h-[200px] w-full">
-                 <BarChart data={iaaByRaceData} layout="horizontal">
-                    <YAxis />
-                    <XAxis dataKey="name" type="category" tickLine={false} axisLine={false} />
-                    <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
-                    <Legend />
-                    {Object.keys(iaaByRaceConfig).map(key => (
-                       <Bar key={key} dataKey={key} stackId="a" fill={iaaByRaceConfig[key].color} radius={[5, 5, 0, 0]} />
-                    ))}
-                </BarChart>
-            </ChartContainer>
-        </ChartCard>
-        <ChartCard title="Quartis de IAA por Origem" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`}>
-            <ChartContainer config={iaaByOriginConfig} className="min-h-[200px] w-full">
-                <BarChart data={iaaByOriginData} layout="horizontal">
-                    <YAxis />
-                    <XAxis dataKey="name" type="category" tickLine={false} axisLine={false} />
-                    <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
-                    <Legend />
-                    {Object.keys(iaaByOriginConfig).map(key => (
-                       <Bar key={key} dataKey={key} stackId="a" fill={iaaByOriginConfig[key].color} radius={[5, 5, 0, 0]} />
-                    ))}
-                </BarChart>
-            </ChartContainer>
-        </ChartCard>
-
+        {charts.filter(chart => !hiddenCharts.includes(chart.id)).map(chart => (
+            <div key={chart.id} className={chart.className || ''}>
+              {chart.component}
+            </div>
+        ))}
     </div>
   )
 }

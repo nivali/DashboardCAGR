@@ -9,34 +9,47 @@ import { Filters } from '@/components/dashboard/filters';
 import { StatsCards } from '@/components/dashboard/stats-cards';
 import { DataCharts } from '@/components/dashboard/data-charts';
 import { AppliedFilters } from '@/components/dashboard/applied-filters';
-import { RefreshCcw, Download, Loader2 } from 'lucide-react';
+import { RefreshCcw, Download, Loader2, EyeOff } from 'lucide-react';
 import { BrazilHeatmap } from './brazil-heatmap';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu';
 
 interface DashboardProps {
   students: Student[];
   onReset: () => void;
 }
 
+const chartNames: { [key: string]: string } = {
+    stats: 'Cartões de Estatísticas',
+    heatmap: 'Mapa de Calor',
+    gender: 'Gráfico de Gênero',
+    situation: 'Gráfico de Situação',
+    nationality: 'Gráfico de Nacionalidade',
+    race: 'Gráfico de Raça/Cor',
+    iaaByGender: 'Gráfico IAA por Gênero',
+    iaaByRace: 'Gráfico IAA por Raça/Cor',
+    iaaByOrigin: 'Gráfico IAA por Origem',
+};
+
 export default function Dashboard({ students, onReset }: DashboardProps) {
   const [isSaving, setIsSaving] = useState(false);
   const dashboardRef = useRef<HTMLDivElement>(null);
-  const [backgroundColor, setBackgroundColor] = useState('rgb(242, 247, 255)');
+  const [backgroundColor, setBackgroundColor] = useState('rgb(255, 255, 255)');
+  const [hiddenCharts, setHiddenCharts] = useState<string[]>([]);
 
   useEffect(() => {
     if (dashboardRef.current) {
-        const computedStyle = getComputedStyle(dashboardRef.current);
         // We need to fetch the actual RGB value of the --background variable
         // as html2canvas has issues with `hsl(var(--...))` format.
-        const bgVar = `hsl(${getComputedStyle(document.documentElement).getPropertyValue('--background').trim()})`;
+        const bgVar = getComputedStyle(document.documentElement).getPropertyValue('--background').trim();
         
         // A little trick to convert CSS variable to a usable format like rgb()
         const tempDiv = document.createElement('div');
-        tempDiv.style.color = bgVar;
+        tempDiv.style.color = `hsl(${bgVar})`;
         document.body.appendChild(tempDiv);
         const color = getComputedStyle(tempDiv).color;
         document.body.removeChild(tempDiv);
         
-        setBackgroundColor(color || 'rgb(242, 247, 255)');
+        setBackgroundColor(color || 'rgb(255, 255, 255)');
     }
   }, []);
 
@@ -59,8 +72,8 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
     const years = [...new Set(students.map(s => s.anoIngresso))].sort((a, b) => a - b);
     
     return {
-      minIaa: Math.floor(Math.min(...iaas)),
-      maxIaa: Math.ceil(Math.max(...iaas)),
+      minIaa: Math.floor(Math.min(...iaas, 0)),
+      maxIaa: Math.ceil(Math.max(...iaas, 1)),
       availableYears: years,
       minAge: Math.min(...ages),
       maxAge: Math.max(...ages),
@@ -121,7 +134,7 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
   const filteredStudents = useMemo(() => {
     return students.filter(student => {
       const iaaMatch = student.iaa >= filters.iaa[0] && student.iaa <= filters.iaa[1];
-      const yearMatch = student.anoIngresso >= filters.year[0] && student.anoIngresso <= filters.year[1];
+      const yearMatch = filters.year.length === 0 || (student.anoIngresso >= filters.year[0] && student.anoIngresso <= filters.year[1]);
       const ageMatch = student.age >= filters.age[0] && student.age <= filters.age[1];
       const courseMatch = filters.nomeCurso.length === 0 || filters.nomeCurso.includes(student.nomeCurso);
       const situationMatch = filters.situacao.length === 0 || filters.situacao.includes(student.situacao);
@@ -157,6 +170,14 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
     }
   };
 
+  const toggleChartVisibility = (chartId: string) => {
+    setHiddenCharts(prev => 
+      prev.includes(chartId) ? prev.filter(id => id !== chartId) : [...prev, chartId]
+    );
+  };
+  
+  const allCharts = Object.keys(chartNames);
+
   const filterOptions = {
     courses, situations, genders, races, entryForms,
     categories, maritalStatus, nationalities, semesters,
@@ -165,6 +186,25 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
   return (
     <div className="flex flex-col gap-8">
       <div className="flex justify-end gap-2">
+         <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline">
+              <EyeOff className="mr-2 h-4 w-4" />
+              Ocultar Gráficos
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            {allCharts.map(chartId => (
+              <DropdownMenuCheckboxItem
+                key={chartId}
+                checked={!hiddenCharts.includes(chartId)}
+                onCheckedChange={() => toggleChartVisibility(chartId)}
+              >
+                {chartNames[chartId]}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Button onClick={handleSaveDashboard} variant="outline" disabled={isSaving}>
             {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
             {isSaving ? "Salvando..." : "Salvar Painel"}
@@ -185,11 +225,16 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
         </aside>
         <div className="lg:col-span-3 space-y-8" ref={dashboardRef}>
            <AppliedFilters filters={filters} onFilterChange={setFilters} options={initialRanges} />
-          <StatsCards students={filteredStudents} />
-          <DataCharts students={filteredStudents} />
-          <div className="md:col-span-3">
-              <BrazilHeatmap students={filteredStudents} />
-          </div>
+          {!hiddenCharts.includes('stats') && <StatsCards students={filteredStudents} />}
+          <DataCharts students={filteredStudents} hiddenCharts={hiddenCharts} onToggleChart={toggleChartVisibility} />
+          {!hiddenCharts.includes('heatmap') && (
+            <div className="md:col-span-3 relative">
+                 <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-6 w-6 z-10" onClick={() => toggleChartVisibility('heatmap')}>
+                    <X className="h-4 w-4" />
+                </Button>
+                <BrazilHeatmap students={filteredStudents} />
+            </div>
+           )}
         </div>
       </div>
     </div>
