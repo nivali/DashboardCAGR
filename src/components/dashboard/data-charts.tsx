@@ -12,13 +12,14 @@ import {
   ChartLegendContent,
 } from "@/components/ui/chart"
 import { Bar, BarChart, Pie, PieChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from "recharts"
+import { BrazilHeatmap } from "./brazil-heatmap"
 
 interface DataChartsProps {
   students: Student[]
 }
 
-const ChartCard: React.FC<React.PropsWithChildren<{ title: string, description?: string }>> = ({ title, description, children }) => (
-    <Card className="shadow-sm hover:shadow-md transition-shadow">
+const ChartCard: React.FC<React.PropsWithChildren<{ title: string, description?: string, className?: string }>> = ({ title, description, children, className }) => (
+    <Card className={`shadow-sm hover:shadow-md transition-shadow ${className}`}>
         <CardHeader>
             <CardTitle>{title}</CardTitle>
             {description && <CardDescription>{description}</CardDescription>}
@@ -137,6 +138,16 @@ export function DataCharts({ students }: DataChartsProps) {
                 </PieChart>
              </ChartContainer>
         </ChartCard>
+         <ChartCard title="Distribuição por Situação">
+            <ChartContainer config={situationConfig} className="min-h-[200px] w-full">
+                <PieChart>
+                    <Pie data={situationData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={80} label />
+                    <Tooltip content={<ChartTooltipContent hideLabel />} />
+                    <ChartLegend content={<ChartLegendContent />} />
+                </PieChart>
+            </ChartContainer>
+        </ChartCard>
+
         <ChartCard title="Distribuição por Raça/Cor">
             <ChartContainer config={raceConfig} className="min-h-[200px] w-full">
                 <BarChart data={raceData} layout="vertical" margin={{ left: 30, right: 30 }}>
@@ -147,6 +158,7 @@ export function DataCharts({ students }: DataChartsProps) {
                 </BarChart>
             </ChartContainer>
         </ChartCard>
+
         <ChartCard title="Top 10 Cidades de Origem">
             <ChartContainer config={cityConfig} className="min-h-[200px] w-full">
                 <BarChart data={cityData} layout="vertical" margin={{ left: 30, right: 30 }}>
@@ -157,16 +169,8 @@ export function DataCharts({ students }: DataChartsProps) {
                 </BarChart>
             </ChartContainer>
         </ChartCard>
-         <ChartCard title="Distribuição por Situação">
-            <ChartContainer config={situationConfig} className="min-h-[200px] w-full">
-                <PieChart>
-                    <Pie data={situationData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={80} label />
-                    <Tooltip content={<ChartTooltipContent hideLabel />} />
-                    <ChartLegend content={<ChartLegendContent />} />
-                </PieChart>
-            </ChartContainer>
-        </ChartCard>
-        <ChartCard title="Quartis de IAA por Gênero" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`}>
+        
+        <ChartCard title="Quartis de IAA por Gênero" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`} className="md:col-span-1">
             <ChartContainer config={iaaByGenderConfig} className="min-h-[200px] w-full">
                 <BarChart data={iaaByGenderData} layout="vertical">
                     <XAxis type="number" hide />
@@ -179,7 +183,7 @@ export function DataCharts({ students }: DataChartsProps) {
                 </BarChart>
             </ChartContainer>
         </ChartCard>
-        <ChartCard title="Quartis de IAA por Raça/Cor" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`}>
+        <ChartCard title="Quartis de IAA por Raça/Cor" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`} className="md:col-span-1">
             <ChartContainer config={iaaByRaceConfig} className="min-h-[200px] w-full">
                  <BarChart data={iaaByRaceData} layout="horizontal">
                     <YAxis />
@@ -192,6 +196,9 @@ export function DataCharts({ students }: DataChartsProps) {
                 </BarChart>
             </ChartContainer>
         </ChartCard>
+        <div className="md:col-span-2">
+            <BrazilHeatmap students={students} />
+        </div>
     </div>
   )
 }
