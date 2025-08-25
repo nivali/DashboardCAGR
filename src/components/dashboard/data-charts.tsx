@@ -77,13 +77,14 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
     const { 
         genderData, raceData, situationData, nationalityData,
         iaaByGenderData, iaaByRaceData, iaaByOriginData, iaaQuartiles,
-        iaaDistributionData, failureRateBySemesterData, top10CitiesData
+        iaaDistributionData, failureRateBySemesterData, top10CitiesOutsideSCData, top10CitiesSCData
     } = useMemo(() => {
         const genderCounts: { [key: string]: number } = {}
         const raceCounts: { [key: string]: number } = {}
         const situationCounts: { [key: string]: number } = {}
         const nationalityCounts: { [key: string]: number } = {}
-        const cityCounts: { [key: string]: number } = {};
+        const cityCountsOutsideSC: { [key: string]: number } = {};
+        const cityCountsSC: { [key: string]: number } = {};
         const iaaRanges: { [key: string]: number } = {
             "0-1000": 0, "1001-2000": 0, "2001-3000": 0, "3001-4000": 0, "4001-5000": 0,
             "5001-6000": 0, "6001-7000": 0, "7001-8000": 0, "8001-9000": 0, "9001-10000": 0
@@ -106,9 +107,14 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
             situationCounts[student.situacao] = (situationCounts[student.situacao] || 0) + 1;
             nationalityCounts[student.nacionalidade] = (nationalityCounts[student.nacionalidade] || 0) + 1;
             
-            if (student.ufSG !== 'SC' && student.municipioSG && student.municipioSG !== 'N/A') {
-                cityCounts[student.municipioSG] = (cityCounts[student.municipioSG] || 0) + 1;
+            if (student.municipioSG && student.municipioSG !== 'N/A') {
+                if (student.ufSG !== 'SC') {
+                    cityCountsOutsideSC[student.municipioSG] = (cityCountsOutsideSC[student.municipioSG] || 0) + 1;
+                } else {
+                    cityCountsSC[student.municipioSG] = (cityCountsSC[student.municipioSG] || 0) + 1;
+                }
             }
+
 
             const iaa = student.iaa;
             if (iaa >= 0 && iaa <= 1000) iaaRanges["0-1000"]++;
@@ -156,8 +162,11 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
           }))
           .sort((a, b) => parseInt(a.name) - parseInt(b.name));
         
-        const sortedCities = Object.entries(cityCounts).sort(([, a], [, b]) => b - a).slice(0, 10);
-        const top10Total = sortedCities.reduce((sum, [, count]) => sum + count, 0);
+        const sortedCitiesOutsideSC = Object.entries(cityCountsOutsideSC).sort(([, a], [, b]) => b - a).slice(0, 10);
+        const top10TotalOutsideSC = sortedCitiesOutsideSC.reduce((sum, [, count]) => sum + count, 0);
+
+        const sortedCitiesSC = Object.entries(cityCountsSC).sort(([, a], [, b]) => b - a).slice(0, 10);
+        const top10TotalSC = sortedCitiesSC.reduce((sum, [, count]) => sum + count, 0);
 
         return {
             genderData: toChartData(genderCounts),
@@ -170,7 +179,8 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
             iaaQuartiles: {q1, q2, q3},
             iaaDistributionData: toChartData(iaaRanges),
             failureRateBySemesterData: calculatedFailureRateData,
-            top10CitiesData: toChartData(Object.fromEntries(sortedCities), top10Total).sort((a,b) => b.value - a.value)
+            top10CitiesOutsideSCData: toChartData(Object.fromEntries(sortedCitiesOutsideSC), top10TotalOutsideSC).sort((a,b) => b.value - a.value),
+            top10CitiesSCData: toChartData(Object.fromEntries(sortedCitiesSC), top10TotalSC).sort((a,b) => b.value - a.value),
         }
     }, [students, analysisType, totalStudents]);
 
@@ -214,7 +224,8 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
     const iaaByRaceConfig = stackedChartConfig(iaaByRaceData);
     const iaaByOriginConfig = stackedChartConfig(iaaByOriginData);
     const iaaDistributionConfig = chartConfig(iaaDistributionData);
-    const top10CitiesConfig = chartConfig(top10CitiesData);
+    const top10CitiesOutsideSCConfig = chartConfig(top10CitiesOutsideSCData);
+    const top10CitiesSCConfig = chartConfig(top10CitiesSCData);
     
     const charts = [
       { id: 'iaaDistribution', title: 'Distribuição de IAA', className: 'lg:col-span-3', component: (
@@ -259,7 +270,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
               </ChartContainer>
           </ChartCard>
       )},
-      { id: 'situation', title: 'Distribuição por Situação', component: (
+      { id: 'situation', title: 'Distribuição por Situação', className: 'lg:col-span-3', component: (
            <ChartCard title="Distribuição por Situação" onRemove={() => onToggleChart('situation')}>
              <ChartContainer config={situationConfig}>
               <ResponsiveContainer width="100%" height="100%">
@@ -307,16 +318,16 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
              </ChartContainer>
           </ChartCard>
       )},
-      { id: 'topCities', title: 'Top 10 Cidades (Fora de SC)', className: 'lg:col-span-3', component: (
-          <ChartCard title="Top 10 Cidades de Origem (Fora de SC)" className="lg:col-span-3" onRemove={() => onToggleChart('topCities')}>
-            <ChartContainer config={top10CitiesConfig}>
+      { id: 'topCitiesOutsideSC', title: 'Top 10 Cidades (Fora de SC)', className: 'lg:col-span-3', component: (
+          <ChartCard title="Top 10 Cidades de Origem (Fora de SC)" className="lg:col-span-3" onRemove={() => onToggleChart('topCitiesOutsideSC')}>
+            <ChartContainer config={top10CitiesOutsideSCConfig}>
               <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={top10CitiesData} layout="vertical" margin={{ left: 50, right: 30 }}>
+                  <BarChart data={top10CitiesOutsideSCData} layout="vertical" margin={{ left: 50, right: 30 }}>
                       <XAxis type="number" hide tickFormatter={(value) => analysisType === 'relative' ? `${value}%` : value} />
                       <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={100} />
                       <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={tooltipFormatter} />} />
                       <Bar dataKey="value" radius={5} >
-                         {top10CitiesData.map((entry, index) => (
+                         {top10CitiesOutsideSCData.map((entry, index) => (
                            <Cell key={`cell-${index}`} fill={entry.fill} />
                          ))}
                       </Bar>
@@ -325,6 +336,24 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
              </ChartContainer>
           </ChartCard>
       )},
+      { id: 'topCitiesSC', title: 'Top 10 Cidades (SC)', className: 'lg:col-span-3', component: (
+        <ChartCard title="Top 10 Cidades de Origem (SC)" className="lg:col-span-3" onRemove={() => onToggleChart('topCitiesSC')}>
+          <ChartContainer config={top10CitiesSCConfig}>
+            <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={top10CitiesSCData} layout="vertical" margin={{ left: 50, right: 30 }}>
+                    <XAxis type="number" hide tickFormatter={(value) => analysisType === 'relative' ? `${value}%` : value} />
+                    <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={100} />
+                    <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={tooltipFormatter} />} />
+                    <Bar dataKey="value" radius={5} >
+                       {top10CitiesSCData.map((entry, index) => (
+                         <Cell key={`cell-${index}`} fill={entry.fill} />
+                       ))}
+                    </Bar>
+                </BarChart>
+            </ResponsiveContainer>
+           </ChartContainer>
+        </ChartCard>
+    )},
        { id: 'failureRate', title: 'Taxa de Reprovação Média por Semestre', className: 'lg:col-span-3', component: (
         <ChartCard title="Taxa de Reprovação Média por Semestre" description="Diferença média entre IAA e IAP" onRemove={() => onToggleChart('failureRate')}>
           <ChartContainer config={{value: {label: 'Taxa de Reprovação Média', color: 'hsl(var(--chart-1))'}}}>
