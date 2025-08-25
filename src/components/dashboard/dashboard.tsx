@@ -32,6 +32,7 @@ const chartNames: { [key: string]: string } = {
     iaaByGender: 'Gráfico IAA por Gênero',
     iaaByRace: 'Gráfico IAA por Raça/Cor',
     iaaByOrigin: 'Gráfico IAA por Origem',
+    topCities: 'Top 10 Cidades de Origem (Fora de SC)',
 };
 
 export default function Dashboard({ students, onReset }: DashboardProps) {
@@ -247,5 +248,3 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
     </div>
   );
 }
-
-    
