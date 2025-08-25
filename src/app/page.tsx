@@ -22,9 +22,9 @@ export default function Home() {
       <main className="bg-background min-h-screen">
         <div className="container mx-auto py-10 px-4">
           <header className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-primary font-headline">AlunoVis</h1>
+            <h1 className="text-4xl md:text-5xl font-bold text-primary font-headline">Dashboard Alunos UFSC</h1>
             <p className="text-muted-foreground mt-2 text-lg">
-              Análise interativa de dados sociodemográficos de estudantes
+              Análise sociodemográfica de estudantes UFSC - CAGR
             </p>
           </header>
 
