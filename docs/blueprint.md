@@ -1,4 +1,4 @@
-# **App Name**: AlunoVis
+# **App Name**: Edumap
 
 ## Core Features:
 

@@ -150,7 +150,7 @@ export default function FileUploader({ onDataLoaded }: FileUploaderProps) {
           <CardTitle className="mt-4">Carregar arquivo CSV</CardTitle>
           <CardDescription>
             Selecione o arquivo com os dados sociodemográficos dos alunos. <br/>
-            O arquivo deve usar ';' como separador de colunas e codificação LATIN1.
+            O arquivo é exportado do sistema CAGR.
           </CardDescription>
         </CardHeader>
         <CardContent>
