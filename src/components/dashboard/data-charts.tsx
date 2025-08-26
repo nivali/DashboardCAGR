@@ -33,7 +33,7 @@ const ChartCard: React.FC<React.PropsWithChildren<{ title: string, description?:
             {description && <CardDescription>{description}</CardDescription>}
         </CardHeader>
         <CardContent className="flex-1 flex">
-            <div className="w-full h-[250px] min-h-[250px]">
+            <div className="w-full h-[300px] min-h-[300px]">
                 {children}
             </div>
         </CardContent>
@@ -323,7 +323,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
           <ChartCard title="Top 7 Cidades de Origem (Fora de SC)" onRemove={() => onToggleChart('topCitiesOutsideSC')}>
             <ChartContainer config={top7CitiesOutsideSCConfig}>
               <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={top7CitiesOutsideSCData} layout="vertical" margin={{ left: 10, right: 30 }} barSize={20}>
+                  <BarChart data={top7CitiesOutsideSCData} layout="vertical" margin={{ left: 30, right: 30 }} barSize={20}>
                       <XAxis type="number" hide tickFormatter={(value) => analysisType === 'relative' ? `${value}%` : value} />
                       <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={120} tick={{width: 110, textOverflow: 'ellipsis'}}/>
                       <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={tooltipFormatter} />} />
@@ -341,7 +341,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
         <ChartCard title="Top 7 Cidades de Origem (SC)" onRemove={() => onToggleChart('topCitiesSC')}>
           <ChartContainer config={top7CitiesSCConfig}>
             <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={top7CitiesSCData} layout="vertical" margin={{ left: 10, right: 30 }} barSize={20}>
+                <BarChart data={top7CitiesSCData} layout="vertical" margin={{ left: 30, right: 30 }} barSize={20}>
                     <XAxis type="number" hide tickFormatter={(value) => analysisType === 'relative' ? `${value}%` : value} />
                     <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={120} tick={{width: 110, textOverflow: 'ellipsis'}} />
                     <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={tooltipFormatter} />} />
@@ -425,12 +425,9 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
 
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div className="flex flex-col space-y-4">
         {charts.filter(chart => !hiddenCharts.includes(chart.id)).map(chart => (
-            <div key={chart.id} className={
-                ['iaaDistribution', 'failureRate', 'iaaByRace', 'iaaByOrigin'].includes(chart.id) 
-                ? 'md:col-span-2 xl:col-span-3' : ''
-            }>
+            <div key={chart.id}>
               {chart.component}
             </div>
         ))}

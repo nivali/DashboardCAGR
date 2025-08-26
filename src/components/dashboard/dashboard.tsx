@@ -38,7 +38,7 @@ const chartNames: { [key: string]: string } = {
     topCitiesSC: 'Top 7 Cidades de Origem (SC)',
 };
 
-const comparisonCities = ["Florianópolis", "Joinville", "Blumenau", "Araranguá"];
+const comparisonCities = ["Florianópolis", "Joinville", "Blumenau", "Araranguá", "Curitibanos"];
 
 export default function Dashboard({ students, onReset }: DashboardProps) {
   const [isSaving, setIsSaving] = useState(false);
@@ -260,7 +260,6 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
         <div className={`${showFilters ? 'lg:col-span-3' : 'lg:col-span-4'} space-y-8`} ref={dashboardRef}>
            <AppliedFilters filters={filters} onFilterChange={setFilters} options={initialRanges} />
           {!hiddenCharts.includes('stats') && <StatsCards students={filteredStudents} />}
-          <DataCharts students={filteredStudents} hiddenCharts={hiddenCharts} onToggleChart={toggleChartVisibility} analysisType={analysisType} comparisonCity={comparisonCity} />
           {!hiddenCharts.includes('heatmap') && (
             <div className="relative">
                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-6 w-6 z-10" onClick={() => toggleChartVisibility('heatmap')}>
@@ -269,6 +268,7 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
                 <BrazilHeatmap students={filteredStudents} comparisonCity={comparisonCity} />
             </div>
            )}
+           <DataCharts students={filteredStudents} hiddenCharts={hiddenCharts} onToggleChart={toggleChartVisibility} analysisType={analysisType} comparisonCity={comparisonCity} />
         </div>
       </div>
     </div>
