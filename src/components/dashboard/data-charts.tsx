@@ -24,7 +24,7 @@ interface DataChartsProps {
 
 const ChartCard: React.FC<React.PropsWithChildren<{ title: string, description?: string, className?: string, onRemove: () => void }>> = ({ title, description, children, className, onRemove }) => (
     <Card className={`shadow-sm hover:shadow-md transition-shadow relative ${className}`}>
-        <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-6 w-6" onClick={onRemove}>
+        <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-6 w-6 z-10" onClick={onRemove}>
             <X className="h-4 w-4" />
         </Button>
         <CardHeader>
@@ -271,7 +271,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
           </ChartCard>
       )},
       { id: 'situation', title: 'Distribuição por Situação', className: 'lg:col-span-3', component: (
-           <ChartCard title="Distribuição por Situação" onRemove={() => onToggleChart('situation')}>
+           <ChartCard title="Distribuição por Situação" className="lg:col-span-3" onRemove={() => onToggleChart('situation')}>
              <ChartContainer config={situationConfig}>
               <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -322,9 +322,9 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
           <ChartCard title="Top 10 Cidades de Origem (Fora de SC)" className="lg:col-span-3" onRemove={() => onToggleChart('topCitiesOutsideSC')}>
             <ChartContainer config={top10CitiesOutsideSCConfig}>
               <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={top10CitiesOutsideSCData} layout="vertical" margin={{ left: 50, right: 30 }}>
+                  <BarChart data={top10CitiesOutsideSCData} layout="vertical" margin={{ left: 10, right: 30 }}>
                       <XAxis type="number" hide tickFormatter={(value) => analysisType === 'relative' ? `${value}%` : value} />
-                      <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={100} />
+                      <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={120} tick={{width: 110, textOverflow: 'ellipsis'}}/>
                       <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={tooltipFormatter} />} />
                       <Bar dataKey="value" radius={5} >
                          {top10CitiesOutsideSCData.map((entry, index) => (
@@ -340,9 +340,9 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
         <ChartCard title="Top 10 Cidades de Origem (SC)" className="lg:col-span-3" onRemove={() => onToggleChart('topCitiesSC')}>
           <ChartContainer config={top10CitiesSCConfig}>
             <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={top10CitiesSCData} layout="vertical" margin={{ left: 50, right: 30 }}>
+                <BarChart data={top10CitiesSCData} layout="vertical" margin={{ left: 10, right: 30 }}>
                     <XAxis type="number" hide tickFormatter={(value) => analysisType === 'relative' ? `${value}%` : value} />
-                    <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={100} />
+                    <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={120} tick={{width: 110, textOverflow: 'ellipsis'}} />
                     <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={tooltipFormatter} />} />
                     <Bar dataKey="value" radius={5} >
                        {top10CitiesSCData.map((entry, index) => (
@@ -433,3 +433,5 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
     </div>
   )
 }
+
+    
