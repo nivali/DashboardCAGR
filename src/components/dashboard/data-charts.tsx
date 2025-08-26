@@ -49,7 +49,7 @@ const getIaaQuartile = (iaa: number, quartiles: number[]): string => {
 
 const aggregateNestedData = (data: { primary: string; secondary: string }[], analysisType: 'raw' | 'relative'): { name: string; [key: string]: number }[] => {
     const primaryKeys = [...new Set(data.map(d => d.primary))];
-    const secondaryKeys = [...new Set(data.map(d => d.secondary))];
+    const secondaryKeys = [...new Set(data.map(d => d.secondary))].sort();
     const result: { name: string; [key: string]: number }[] = [];
 
     primaryKeys.forEach(primaryKey => {
@@ -71,6 +71,23 @@ const aggregateNestedData = (data: { primary: string; secondary: string }[], ana
     return result.sort((a,b) => a.name.localeCompare(b.name));
 };
 
+const PALETTE = [
+  "hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3))",
+  "hsl(var(--chart-4))", "hsl(var(--chart-5))"
+];
+
+const colorCache = new Map<string, string>();
+let lastColorIndex = -1;
+
+const getStableColor = (name: string): string => {
+    if (colorCache.has(name)) {
+        return colorCache.get(name)!;
+    }
+    lastColorIndex = (lastColorIndex + 1) % PALETTE.length;
+    const color = PALETTE[lastColorIndex];
+    colorCache.set(name, color);
+    return color;
+};
 
 export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType, comparisonCity }: DataChartsProps) {
     const totalStudents = students.length;
@@ -149,10 +166,10 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
         }
         
         const toChartData = (counts: {[key: string]: number}, total: number = totalStudents) => {
-             return Object.entries(counts).map(([name, value], index) => ({ 
+             return Object.entries(counts).map(([name, value]) => ({ 
                 name, 
                 value: analysisType === 'relative' && total > 0 ? parseFloat(((value / total) * 100).toFixed(2)) : value,
-                fill: `hsl(var(--chart-${(index % 5) + 1}))`
+                fill: getStableColor(name)
             }));
         }
 
@@ -197,8 +214,8 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
     const stackedChartConfig = (data: {name: string, [key: string]: any}[]) => {
       if (data.length === 0) return {};
       const keys = Object.keys(data[0]).filter(k => k !== 'name');
-      return keys.reduce((acc, key, index) => {
-        acc[key] = { label: key, color: `hsl(var(--chart-${(index % 5) + 1}))` };
+      return keys.reduce((acc, key) => {
+        acc[key] = { label: key, color: getStableColor(key) };
         return acc;
       }, {} as any)
     }

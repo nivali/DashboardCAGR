@@ -17,6 +17,7 @@ if (typeof Highcharts === 'object') {
 interface BrazilHeatmapProps {
   students: Student[];
   comparisonCity: string;
+  analysisType: 'raw' | 'relative';
 }
 
 const stateMapping: { [key: string]: string } = {
@@ -28,9 +29,12 @@ const stateMapping: { [key: string]: string } = {
     'SE': 'br-se', 'TO': 'br-to'
 };
 
-export function BrazilHeatmap({ students, comparisonCity }: BrazilHeatmapProps) {
+export function BrazilHeatmap({ students, comparisonCity, analysisType }: BrazilHeatmapProps) {
+  const totalStudents = students.length;
+
   const { stateData, scData } = useMemo(() => {
     const counts: { [key: string]: { total: number, selectedCity: number, others: number} } = {};
+    const totalCounts: { [key: string]: number } = {};
 
     for (const student of students) {
         if(student.ufSG && student.ufSG !== "N/A"){
@@ -39,7 +43,13 @@ export function BrazilHeatmap({ students, comparisonCity }: BrazilHeatmapProps) 
                  if (!counts[hcKey]) {
                     counts[hcKey] = { total: 0, selectedCity: 0, others: 0 };
                  }
+                 if (!totalCounts[hcKey]) {
+                    totalCounts[hcKey] = 0;
+                 }
+
                  counts[hcKey].total++;
+                 totalCounts[hcKey]++;
+
                  if (student.ufSG === 'SC') {
                     if (student.municipioSG.toLowerCase() === comparisonCity.toLowerCase()) {
                         counts[hcKey].selectedCity++;
@@ -50,13 +60,21 @@ export function BrazilHeatmap({ students, comparisonCity }: BrazilHeatmapProps) 
             }
         }
     }
-    const data = Object.entries(counts).map(([key, value]) => [key, value.total]);
+
+    let data;
+    if (analysisType === 'relative' && totalStudents > 0) {
+        data = Object.entries(totalCounts).map(([key, value]) => [key, parseFloat(((value / totalStudents) * 100).toFixed(2))]);
+    } else {
+        data = Object.entries(totalCounts).map(([key, value]) => [key, value]);
+    }
+
     return { stateData: data, scData: counts['br-sc'] };
-  }, [students, comparisonCity]);
+  }, [students, comparisonCity, analysisType, totalStudents]);
 
   const mapOptions = useMemo(() => {
       const studentCounts = stateData.map(d => d[1] as number);
       const maxStudents = Math.max(...studentCounts, 0);
+      const valueSuffix = analysisType === 'relative' ? '%' : '';
 
       return {
         chart: {
@@ -83,7 +101,7 @@ export function BrazilHeatmap({ students, comparisonCity }: BrazilHeatmapProps) 
         },
         series: [{
             data: stateData,
-            name: 'Número de Alunos',
+            name: analysisType === 'relative' ? '% de Alunos' : 'Número de Alunos',
             states: {
                 hover: {
                     color: '#75B879'
@@ -91,7 +109,7 @@ export function BrazilHeatmap({ students, comparisonCity }: BrazilHeatmapProps) 
             },
             dataLabels: {
                 enabled: true,
-                format: '{point.value}',
+                format: `{point.value}${valueSuffix}`,
                 style: {
                     fontSize: '10px',
                     color: '#333',
@@ -102,14 +120,26 @@ export function BrazilHeatmap({ students, comparisonCity }: BrazilHeatmapProps) 
         tooltip: {
             formatter: function(this: Highcharts.TooltipFormatterContextObject): string {
                 const point = this.point as any;
+                const pointValue = point.value.toLocaleString() + valueSuffix;
+
                 if (point['hc-key'] === 'br-sc' && scData) {
-                    return `${point.name}<br/><b>Total: ${point.value}</b><br/>${comparisonCity}: ${scData.selectedCity}<br/>Demais: ${scData.others}`;
+                    const totalValue = analysisType === 'relative' && totalStudents > 0
+                        ? ((scData.total / totalStudents) * 100).toFixed(2) + '%'
+                        : scData.total.toLocaleString();
+                    const cityValue = analysisType === 'relative' && scData.total > 0
+                        ? ((scData.selectedCity / scData.total) * 100).toFixed(2) + '%'
+                        : scData.selectedCity.toLocaleString();
+                     const othersValue = analysisType === 'relative' && scData.total > 0
+                        ? ((scData.others / scData.total) * 100).toFixed(2) + '%'
+                        : scData.others.toLocaleString();
+
+                    return `${point.name}<br/><b>Total: ${totalValue}</b><br/>${comparisonCity}: ${cityValue}<br/>Demais: ${othersValue}`;
                 }
-                return `${point.name}: <b>${point.value}</b> aluno(s)`;
+                return `${point.name}: <b>${pointValue}</b>`;
             }
         },
       }
-  }, [stateData, scData, comparisonCity]);
+  }, [stateData, scData, comparisonCity, analysisType, totalStudents]);
 
   return (
     <Card className="shadow-sm hover:shadow-md transition-shadow h-full">

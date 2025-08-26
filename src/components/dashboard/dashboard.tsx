@@ -266,7 +266,7 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
                      <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-6 w-6 z-10" onClick={() => toggleChartVisibility('heatmap')}>
                         <X className="h-4 w-4" />
                     </Button>
-                    <BrazilHeatmap students={filteredStudents} comparisonCity={comparisonCity} />
+                    <BrazilHeatmap students={filteredStudents} comparisonCity={comparisonCity} analysisType={analysisType} />
                 </div>
                )}
                <DataCharts students={filteredStudents} hiddenCharts={hiddenCharts} onToggleChart={toggleChartVisibility} analysisType={analysisType} comparisonCity={comparisonCity} />
