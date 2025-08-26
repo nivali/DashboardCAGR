@@ -163,6 +163,40 @@ export function Filters({ onFilterChange, filters, options, initialRanges }: Fil
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-4">
+          <Label>Ano de Ingresso</Label>
+          <Slider
+            value={currentFilters.year}
+            onValueChange={(v) => handleRangeChange('year', v)}
+            min={initialRanges.year[0]}
+            max={initialRanges.year[1]}
+            step={1}
+          />
+          <div className="flex justify-between items-center gap-2">
+             <Input 
+                type="number" 
+                value={currentFilters.year[0]}
+                onChange={(e) => handleInputChange('year', 0, e.target.value)}
+                className="w-full"
+                min={initialRanges.year[0]}
+                max={initialRanges.year[1]}
+             />
+             <span className="text-muted-foreground">-</span>
+             <Input
+                type="number" 
+                value={currentFilters.year[1]}
+                onChange={(e) => handleInputChange('year', 1, e.target.value)}
+                className="w-full"
+                min={initialRanges.year[0]}
+                max={initialRanges.year[1]}
+             />
+          </div>
+        </div>
+
+        <MultiSelectFilter label="Situação" selected={currentFilters.situacao} onSelectionChange={(v) => handleMultiSelectChange('situacao', v)} options={options.situations} />
+        
+        <MultiSelectFilter label="Semestre de Ingresso" selected={currentFilters.semestreIngresso} onSelectionChange={(v) => handleMultiSelectChange('semestreIngresso', v)} options={options.semesters} />
+
+        <div className="space-y-4">
             <Label>IAA - Índice de Aproveitamento</Label>
             <Slider
                 value={currentFilters.iaa}
@@ -191,6 +225,20 @@ export function Filters({ onFilterChange, filters, options, initialRanges }: Fil
                 />
             </div>
         </div>
+
+        <MultiSelectFilter label="Gênero" selected={currentFilters.sexo} onSelectionChange={(v) => handleMultiSelectChange('sexo', v)} options={options.genders} />
+
+        <MultiSelectFilter label="Raça/Cor" selected={currentFilters.racaCor} onSelectionChange={(v) => handleMultiSelectChange('racaCor', v)} options={options.races} />
+        
+        <MultiSelectFilter label="Curso" selected={currentFilters.nomeCurso} onSelectionChange={(v) => handleMultiSelectChange('nomeCurso', v)} options={options.courses} />
+
+        <MultiSelectFilter label="Estado Civil" selected={currentFilters.estadoCivil} onSelectionChange={(v) => handleMultiSelectChange('estadoCivil', v)} options={options.maritalStatus} />
+
+        <MultiSelectFilter label="Nacionalidade" selected={currentFilters.nacionalidade} onSelectionChange={(v) => handleMultiSelectChange('nacionalidade', v)} options={options.nationalities} />
+
+        <MultiSelectFilter label="Forma de Ingresso" selected={currentFilters.formaIngresso} onSelectionChange={(v) => handleMultiSelectChange('formaIngresso', v)} options={options.entryForms} />
+        
+        <MultiSelectFilter label="Categoria de Ingresso" selected={currentFilters.categoriaIngresso} onSelectionChange={(v) => handleMultiSelectChange('categoriaIngresso', v)} options={options.categories} />
 
         <div className="space-y-4">
           <Label>Idade</Label>
@@ -221,45 +269,6 @@ export function Filters({ onFilterChange, filters, options, initialRanges }: Fil
              />
           </div>
         </div>
-                
-        <div className="space-y-4">
-          <Label>Ano de Ingresso</Label>
-          <Slider
-            value={currentFilters.year}
-            onValueChange={(v) => handleRangeChange('year', v)}
-            min={initialRanges.year[0]}
-            max={initialRanges.year[1]}
-            step={1}
-          />
-          <div className="flex justify-between items-center gap-2">
-             <Input 
-                type="number" 
-                value={currentFilters.year[0]}
-                onChange={(e) => handleInputChange('year', 0, e.target.value)}
-                className="w-full"
-                min={initialRanges.year[0]}
-                max={initialRanges.year[1]}
-             />
-             <span className="text-muted-foreground">-</span>
-             <Input
-                type="number" 
-                value={currentFilters.year[1]}
-                onChange={(e) => handleInputChange('year', 1, e.target.value)}
-                className="w-full"
-                min={initialRanges.year[0]}
-                max={initialRanges.year[1]}
-             />
-          </div>
-        </div>
-        <MultiSelectFilter label="Semestre de Ingresso" selected={currentFilters.semestreIngresso} onSelectionChange={(v) => handleMultiSelectChange('semestreIngresso', v)} options={options.semesters} />
-        <MultiSelectFilter label="Curso" selected={currentFilters.nomeCurso} onSelectionChange={(v) => handleMultiSelectChange('nomeCurso', v)} options={options.courses} />
-        <MultiSelectFilter label="Situação" selected={currentFilters.situacao} onSelectionChange={(v) => handleMultiSelectChange('situacao', v)} options={options.situations} />
-        <MultiSelectFilter label="Gênero" selected={currentFilters.sexo} onSelectionChange={(v) => handleMultiSelectChange('sexo', v)} options={options.genders} />
-        <MultiSelectFilter label="Raça/Cor" selected={currentFilters.racaCor} onSelectionChange={(v) => handleMultiSelectChange('racaCor', v)} options={options.races} />
-        <MultiSelectFilter label="Forma de Ingresso" selected={currentFilters.formaIngresso} onSelectionChange={(v) => handleMultiSelectChange('formaIngresso', v)} options={options.entryForms} />
-        <MultiSelectFilter label="Categoria de Ingresso" selected={currentFilters.categoriaIngresso} onSelectionChange={(v) => handleMultiSelectChange('categoriaIngresso', v)} options={options.categories} />
-        <MultiSelectFilter label="Estado Civil" selected={currentFilters.estadoCivil} onSelectionChange={(v) => handleMultiSelectChange('estadoCivil', v)} options={options.maritalStatus} />
-        <MultiSelectFilter label="Nacionalidade" selected={currentFilters.nacionalidade} onSelectionChange={(v) => handleMultiSelectChange('nacionalidade', v)} options={options.nationalities} />
       </CardContent>
     </Card>
   )
