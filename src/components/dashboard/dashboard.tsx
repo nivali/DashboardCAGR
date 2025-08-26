@@ -257,18 +257,20 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
                 />
             </aside>
         )}
-        <div className={`${showFilters ? 'lg:col-span-3' : 'lg:col-span-4'} space-y-8`} ref={dashboardRef}>
-           <AppliedFilters filters={filters} onFilterChange={setFilters} options={initialRanges} />
-          {!hiddenCharts.includes('stats') && <StatsCards students={filteredStudents} />}
-          {!hiddenCharts.includes('heatmap') && (
-            <div className="relative">
-                 <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-6 w-6 z-10" onClick={() => toggleChartVisibility('heatmap')}>
-                    <X className="h-4 w-4" />
-                </Button>
-                <BrazilHeatmap students={filteredStudents} comparisonCity={comparisonCity} />
+        <div className={`${showFilters ? 'lg:col-span-3' : 'lg:col-span-4'} flex justify-center`}>
+            <div className="w-full max-w-[600px] space-y-8" ref={dashboardRef}>
+               <AppliedFilters filters={filters} onFilterChange={setFilters} options={initialRanges} />
+              {!hiddenCharts.includes('stats') && <StatsCards students={filteredStudents} />}
+              {!hiddenCharts.includes('heatmap') && (
+                <div className="relative">
+                     <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-6 w-6 z-10" onClick={() => toggleChartVisibility('heatmap')}>
+                        <X className="h-4 w-4" />
+                    </Button>
+                    <BrazilHeatmap students={filteredStudents} comparisonCity={comparisonCity} />
+                </div>
+               )}
+               <DataCharts students={filteredStudents} hiddenCharts={hiddenCharts} onToggleChart={toggleChartVisibility} analysisType={analysisType} comparisonCity={comparisonCity} />
             </div>
-           )}
-           <DataCharts students={filteredStudents} hiddenCharts={hiddenCharts} onToggleChart={toggleChartVisibility} analysisType={analysisType} comparisonCity={comparisonCity} />
         </div>
       </div>
     </div>
