@@ -32,7 +32,7 @@ const ChartCard: React.FC<React.PropsWithChildren<{ title: string, description?:
             {description && <CardDescription>{description}</CardDescription>}
         </CardHeader>
         <CardContent className="flex-1 flex">
-            <div className="w-full h-64">
+            <div className="w-full h-[250px] min-h-[250px]">
                 {children}
             </div>
         </CardContent>
@@ -77,7 +77,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
     const { 
         genderData, raceData, situationData, nationalityData,
         iaaByGenderData, iaaByRaceData, iaaByOriginData, iaaQuartiles,
-        iaaDistributionData, failureRateBySemesterData, top10CitiesOutsideSCData, top10CitiesSCData
+        iaaDistributionData, failureRateBySemesterData, top7CitiesOutsideSCData, top7CitiesSCData
     } = useMemo(() => {
         const genderCounts: { [key: string]: number } = {}
         const raceCounts: { [key: string]: number } = {}
@@ -162,11 +162,11 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
           }))
           .sort((a, b) => parseInt(a.name) - parseInt(b.name));
         
-        const sortedCitiesOutsideSC = Object.entries(cityCountsOutsideSC).sort(([, a], [, b]) => b - a).slice(0, 10);
-        const top10TotalOutsideSC = sortedCitiesOutsideSC.reduce((sum, [, count]) => sum + count, 0);
+        const sortedCitiesOutsideSC = Object.entries(cityCountsOutsideSC).sort(([, a], [, b]) => b - a).slice(0, 7);
+        const top7TotalOutsideSC = sortedCitiesOutsideSC.reduce((sum, [, count]) => sum + count, 0);
 
-        const sortedCitiesSC = Object.entries(cityCountsSC).sort(([, a], [, b]) => b - a).slice(0, 10);
-        const top10TotalSC = sortedCitiesSC.reduce((sum, [, count]) => sum + count, 0);
+        const sortedCitiesSC = Object.entries(cityCountsSC).sort(([, a], [, b]) => b - a).slice(0, 7);
+        const top7TotalSC = sortedCitiesSC.reduce((sum, [, count]) => sum + count, 0);
 
         return {
             genderData: toChartData(genderCounts),
@@ -179,8 +179,8 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
             iaaQuartiles: {q1, q2, q3},
             iaaDistributionData: toChartData(iaaRanges),
             failureRateBySemesterData: calculatedFailureRateData,
-            top10CitiesOutsideSCData: toChartData(Object.fromEntries(sortedCitiesOutsideSC), top10TotalOutsideSC).sort((a,b) => b.value - a.value),
-            top10CitiesSCData: toChartData(Object.fromEntries(sortedCitiesSC), top10TotalSC).sort((a,b) => b.value - a.value),
+            top7CitiesOutsideSCData: toChartData(Object.fromEntries(sortedCitiesOutsideSC), top7TotalOutsideSC).sort((a,b) => b.value - a.value),
+            top7CitiesSCData: toChartData(Object.fromEntries(sortedCitiesSC), top7TotalSC).sort((a,b) => b.value - a.value),
         }
     }, [students, analysisType, totalStudents]);
 
@@ -224,8 +224,8 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
     const iaaByRaceConfig = stackedChartConfig(iaaByRaceData);
     const iaaByOriginConfig = stackedChartConfig(iaaByOriginData);
     const iaaDistributionConfig = chartConfig(iaaDistributionData);
-    const top10CitiesOutsideSCConfig = chartConfig(top10CitiesOutsideSCData);
-    const top10CitiesSCConfig = chartConfig(top10CitiesSCData);
+    const top7CitiesOutsideSCConfig = chartConfig(top7CitiesOutsideSCData);
+    const top7CitiesSCConfig = chartConfig(top7CitiesSCData);
     
     const charts = [
       { id: 'iaaDistribution', title: 'Distribuição de IAA', className: 'lg:col-span-3', component: (
@@ -318,16 +318,16 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
              </ChartContainer>
           </ChartCard>
       )},
-      { id: 'topCitiesOutsideSC', title: 'Top 10 Cidades (Fora de SC)', className: 'lg:col-span-3', component: (
-          <ChartCard title="Top 10 Cidades de Origem (Fora de SC)" className="lg:col-span-3" onRemove={() => onToggleChart('topCitiesOutsideSC')}>
-            <ChartContainer config={top10CitiesOutsideSCConfig}>
+      { id: 'topCitiesOutsideSC', title: 'Top 7 Cidades (Fora de SC)', className: 'lg:col-span-3', component: (
+          <ChartCard title="Top 7 Cidades de Origem (Fora de SC)" className="lg:col-span-3" onRemove={() => onToggleChart('topCitiesOutsideSC')}>
+            <ChartContainer config={top7CitiesOutsideSCConfig}>
               <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={top10CitiesOutsideSCData} layout="vertical" margin={{ left: 10, right: 30 }} barSize={20}>
+                  <BarChart data={top7CitiesOutsideSCData} layout="vertical" margin={{ left: 10, right: 30 }} barSize={20}>
                       <XAxis type="number" hide tickFormatter={(value) => analysisType === 'relative' ? `${value}%` : value} />
                       <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={120} tick={{width: 110, textOverflow: 'ellipsis'}}/>
                       <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={tooltipFormatter} />} />
                       <Bar dataKey="value" radius={5} >
-                         {top10CitiesOutsideSCData.map((entry, index) => (
+                         {top7CitiesOutsideSCData.map((entry, index) => (
                            <Cell key={`cell-${index}`} fill={entry.fill} />
                          ))}
                       </Bar>
@@ -336,16 +336,16 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
              </ChartContainer>
           </ChartCard>
       )},
-      { id: 'topCitiesSC', title: 'Top 10 Cidades (SC)', className: 'lg:col-span-3', component: (
-        <ChartCard title="Top 10 Cidades de Origem (SC)" className="lg:col-span-3" onRemove={() => onToggleChart('topCitiesSC')}>
-          <ChartContainer config={top10CitiesSCConfig}>
+      { id: 'topCitiesSC', title: 'Top 7 Cidades (SC)', className: 'lg:col-span-3', component: (
+        <ChartCard title="Top 7 Cidades de Origem (SC)" className="lg:col-span-3" onRemove={() => onToggleChart('topCitiesSC')}>
+          <ChartContainer config={top7CitiesSCConfig}>
             <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={top10CitiesSCData} layout="vertical" margin={{ left: 10, right: 30 }} barSize={20}>
+                <BarChart data={top7CitiesSCData} layout="vertical" margin={{ left: 10, right: 30 }} barSize={20}>
                     <XAxis type="number" hide tickFormatter={(value) => analysisType === 'relative' ? `${value}%` : value} />
                     <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={120} tick={{width: 110, textOverflow: 'ellipsis'}} />
                     <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={tooltipFormatter} />} />
                     <Bar dataKey="value" radius={5} >
-                       {top10CitiesSCData.map((entry, index) => (
+                       {top7CitiesSCData.map((entry, index) => (
                          <Cell key={`cell-${index}`} fill={entry.fill} />
                        ))}
                     </Bar>
@@ -433,6 +433,8 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
     </div>
   )
 }
+
+    
 
     
 

@@ -32,14 +32,14 @@ const chartNames: { [key: string]: string } = {
     iaaByGender: 'Gráfico IAA por Gênero',
     iaaByRace: 'Gráfico IAA por Raça/Cor',
     iaaByOrigin: 'Gráfico IAA por Origem',
-    topCitiesOutsideSC: 'Top 10 Cidades de Origem (Fora de SC)',
-    topCitiesSC: 'Top 10 Cidades de Origem (SC)',
+    topCitiesOutsideSC: 'Top 7 Cidades de Origem (Fora de SC)',
+    topCitiesSC: 'Top 7 Cidades de Origem (SC)',
 };
 
 export default function Dashboard({ students, onReset }: DashboardProps) {
   const [isSaving, setIsSaving] = useState(false);
   const dashboardRef = useRef<HTMLDivElement>(null);
-  const [backgroundColor, setBackgroundColor] = useState('rgb(255, 255, 255)');
+  const [backgroundColor, setBackgroundColor] = useState('rgb(248, 250, 252)');
   const [hiddenCharts, setHiddenCharts] = useState<string[]>([]);
   const [analysisType, setAnalysisType] = useState<'raw' | 'relative'>('raw');
 
@@ -47,7 +47,7 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
   useEffect(() => {
     if (dashboardRef.current) {
         const bgStyle = window.getComputedStyle(document.body).backgroundColor;
-        setBackgroundColor(bgStyle || 'rgb(255, 255, 255)');
+        setBackgroundColor(bgStyle || 'rgb(248, 250, 252)');
     }
   }, []);
 
@@ -249,3 +249,5 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
     </div>
   );
 }
+
+    
