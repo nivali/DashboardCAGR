@@ -20,6 +20,7 @@ interface DataChartsProps {
   hiddenCharts: string[];
   onToggleChart: (chartId: string) => void;
   analysisType: 'raw' | 'relative';
+  comparisonCity: string;
 }
 
 const ChartCard: React.FC<React.PropsWithChildren<{ title: string, description?: string, className?: string, onRemove: () => void }>> = ({ title, description, children, className, onRemove }) => (
@@ -71,7 +72,7 @@ const aggregateNestedData = (data: { primary: string; secondary: string }[], ana
 };
 
 
-export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType }: DataChartsProps) {
+export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType, comparisonCity }: DataChartsProps) {
     const totalStudents = students.length;
 
     const { 
@@ -132,7 +133,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                 const iaaQuartile = getIaaQuartile(student.iaa, quartiles);
                 iaaGenderPairs.push({ primary: iaaQuartile, secondary: student.sexo });
                 iaaRacePairs.push({ primary: iaaQuartile, secondary: student.racaCor });
-                const origin = student.municipioSG.toLowerCase() === 'joinville' ? 'Joinville' : 'Externo';
+                const origin = student.municipioSG.toLowerCase() === comparisonCity.toLowerCase() ? comparisonCity : 'Externo';
                 iaaOriginPairs.push({ primary: iaaQuartile, secondary: origin });
             }
 
@@ -182,7 +183,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
             top7CitiesOutsideSCData: toChartData(Object.fromEntries(sortedCitiesOutsideSC), top7TotalOutsideSC).sort((a,b) => b.value - a.value),
             top7CitiesSCData: toChartData(Object.fromEntries(sortedCitiesSC), top7TotalSC).sort((a,b) => b.value - a.value),
         }
-    }, [students, analysisType, totalStudents]);
+    }, [students, analysisType, totalStudents, comparisonCity]);
 
     const chartConfig = (data: {name: string, value?: any, fill?: string}[]) => {
         return data.reduce((acc, item) => {
@@ -228,8 +229,8 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
     const top7CitiesSCConfig = chartConfig(top7CitiesSCData);
     
     const charts = [
-      { id: 'iaaDistribution', title: 'Distribuição de IAA', className: 'lg:col-span-3', component: (
-          <ChartCard title="Distribuição de IAA por Faixa" className="lg:col-span-3" onRemove={() => onToggleChart('iaaDistribution')}>
+      { id: 'iaaDistribution', title: 'Distribuição de IAA', component: (
+          <ChartCard title="Distribuição de IAA por Faixa" onRemove={() => onToggleChart('iaaDistribution')}>
             <ChartContainer config={iaaDistributionConfig}>
               <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={iaaDistributionData} margin={{ left: 0, right: 30, bottom: 40 }}>
@@ -270,8 +271,8 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
               </ChartContainer>
           </ChartCard>
       )},
-      { id: 'situation', title: 'Distribuição por Situação', className: 'lg:col-span-3', component: (
-           <ChartCard title="Distribuição por Situação" className="lg:col-span-3" onRemove={() => onToggleChart('situation')}>
+      { id: 'situation', title: 'Distribuição por Situação', component: (
+           <ChartCard title="Distribuição por Situação" onRemove={() => onToggleChart('situation')}>
              <ChartContainer config={situationConfig}>
               <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -300,8 +301,8 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
               </ChartContainer>
           </ChartCard>
       )},
-      { id: 'race', title: 'Distribuição por Raça/Cor', className: 'lg:col-span-3', component: (
-          <ChartCard title="Distribuição por Raça/Cor" className="lg:col-span-3" onRemove={() => onToggleChart('race')}>
+      { id: 'race', title: 'Distribuição por Raça/Cor', component: (
+          <ChartCard title="Distribuição por Raça/Cor" onRemove={() => onToggleChart('race')}>
             <ChartContainer config={raceConfig}>
               <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={raceData} layout="vertical" margin={{ left: 30, right: 30 }}>
@@ -318,8 +319,8 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
              </ChartContainer>
           </ChartCard>
       )},
-      { id: 'topCitiesOutsideSC', title: 'Top 7 Cidades (Fora de SC)', className: 'lg:col-span-3', component: (
-          <ChartCard title="Top 7 Cidades de Origem (Fora de SC)" className="lg:col-span-3" onRemove={() => onToggleChart('topCitiesOutsideSC')}>
+      { id: 'topCitiesOutsideSC', title: 'Top 7 Cidades (Fora de SC)', component: (
+          <ChartCard title="Top 7 Cidades de Origem (Fora de SC)" onRemove={() => onToggleChart('topCitiesOutsideSC')}>
             <ChartContainer config={top7CitiesOutsideSCConfig}>
               <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={top7CitiesOutsideSCData} layout="vertical" margin={{ left: 10, right: 30 }} barSize={20}>
@@ -336,8 +337,8 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
              </ChartContainer>
           </ChartCard>
       )},
-      { id: 'topCitiesSC', title: 'Top 7 Cidades (SC)', className: 'lg:col-span-3', component: (
-        <ChartCard title="Top 7 Cidades de Origem (SC)" className="lg:col-span-3" onRemove={() => onToggleChart('topCitiesSC')}>
+      { id: 'topCitiesSC', title: 'Top 7 Cidades (SC)', component: (
+        <ChartCard title="Top 7 Cidades de Origem (SC)" onRemove={() => onToggleChart('topCitiesSC')}>
           <ChartContainer config={top7CitiesSCConfig}>
             <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={top7CitiesSCData} layout="vertical" margin={{ left: 10, right: 30 }} barSize={20}>
@@ -354,7 +355,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
            </ChartContainer>
         </ChartCard>
     )},
-       { id: 'failureRate', title: 'Taxa de Reprovação Média por Semestre', className: 'lg:col-span-3', component: (
+       { id: 'failureRate', title: 'Taxa de Reprovação Média por Semestre', component: (
         <ChartCard title="Taxa de Reprovação Média por Semestre" description="Diferença média entre IAA e IAP" onRemove={() => onToggleChart('failureRate')}>
           <ChartContainer config={{value: {label: 'Taxa de Reprovação Média', color: 'hsl(var(--chart-1))'}}}>
             <ResponsiveContainer width="100%" height="100%">
@@ -403,8 +404,8 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
              </ChartContainer>
           </ChartCard>
       )},
-      { id: 'iaaByOrigin', title: 'Quartis de IAA por Origem', component: (
-          <ChartCard title="Quartis de IAA por Origem" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`} onRemove={() => onToggleChart('iaaByOrigin')}>
+      { id: 'iaaByOrigin', title: `Quartis de IAA: ${comparisonCity} vs Externo`, component: (
+          <ChartCard title={`Quartis de IAA: ${comparisonCity} vs Externo`} description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`} onRemove={() => onToggleChart('iaaByOrigin')}>
             <ChartContainer config={iaaByOriginConfig}>
               <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={iaaByOriginData} layout="horizontal">
@@ -424,18 +425,15 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
 
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {charts.filter(chart => !hiddenCharts.includes(chart.id)).map(chart => (
-            <div key={chart.id} className={chart.className || ''}>
+            <div key={chart.id} className={
+                ['iaaDistribution', 'failureRate', 'iaaByRace', 'iaaByOrigin'].includes(chart.id) 
+                ? 'md:col-span-2 xl:col-span-3' : ''
+            }>
               {chart.component}
             </div>
         ))}
     </div>
   )
 }
-
-    
-
-    
-
-    

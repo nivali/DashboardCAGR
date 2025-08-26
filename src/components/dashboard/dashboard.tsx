@@ -9,11 +9,13 @@ import { Filters } from '@/components/dashboard/filters';
 import { StatsCards } from '@/components/dashboard/stats-cards';
 import { DataCharts } from '@/components/dashboard/data-charts';
 import { AppliedFilters } from '@/components/dashboard/applied-filters';
-import { RefreshCcw, Download, Loader2, EyeOff, X } from 'lucide-react';
+import { RefreshCcw, Download, Loader2, EyeOff, X, Filter as FilterIcon } from 'lucide-react';
 import { BrazilHeatmap } from './brazil-heatmap';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu';
 import { Label } from '../ui/label';
 import { Switch } from '../ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 
 interface DashboardProps {
   students: Student[];
@@ -36,12 +38,16 @@ const chartNames: { [key: string]: string } = {
     topCitiesSC: 'Top 7 Cidades de Origem (SC)',
 };
 
+const comparisonCities = ["Florianópolis", "Joinville", "Blumenau", "Araranguá"];
+
 export default function Dashboard({ students, onReset }: DashboardProps) {
   const [isSaving, setIsSaving] = useState(false);
   const dashboardRef = useRef<HTMLDivElement>(null);
   const [backgroundColor, setBackgroundColor] = useState('rgb(248, 250, 252)');
   const [hiddenCharts, setHiddenCharts] = useState<string[]>([]);
   const [analysisType, setAnalysisType] = useState<'raw' | 'relative'>('raw');
+  const [showFilters, setShowFilters] = useState(true);
+  const [comparisonCity, setComparisonCity] = useState('Joinville');
 
 
   useEffect(() => {
@@ -155,7 +161,7 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
         const canvas = await html2canvas(dashboardRef.current, {
             useCORS: true,
             scale: 2, 
-            backgroundColor: backgroundColor
+            backgroundColor: backgroundColor,
         });
         const link = document.createElement('a');
         link.download = 'dashboard-alunovis.png';
@@ -183,7 +189,7 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
 
   return (
     <div className="flex flex-col gap-8">
-       <div className="flex flex-col sm:flex-row justify-end items-center gap-4">
+       <div className="flex flex-wrap justify-end items-center gap-4">
         <div className="flex items-center space-x-2">
             <Label htmlFor="analysis-type">Valores Absolutos</Label>
             <Switch 
@@ -193,7 +199,24 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
             />
             <Label htmlFor="analysis-type">Valores Relativos</Label>
         </div>
+        <div className="flex items-center space-x-2">
+            <Label htmlFor="comparison-city">Cidade de Comparação</Label>
+            <Select value={comparisonCity} onValueChange={setComparisonCity}>
+                <SelectTrigger id="comparison-city" className="w-[180px]">
+                    <SelectValue placeholder="Selecione uma cidade" />
+                </SelectTrigger>
+                <SelectContent>
+                    {comparisonCities.map(city => (
+                         <SelectItem key={city} value={city}>{city}</SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
         <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowFilters(!showFilters)}>
+                <FilterIcon className="mr-2 h-4 w-4" />
+                {showFilters ? 'Ocultar' : 'Mostrar'} Filtros
+            </Button>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                 <Button variant="outline">
@@ -223,25 +246,27 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
             </Button>
         </div>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-4 lg:gap-8 space-y-8 lg:space-y-0">
-        <aside className="lg:col-span-1">
-          <Filters
-            onFilterChange={setFilters}
-            filters={filters}
-            options={filterOptions}
-            initialRanges={initialRanges}
-          />
-        </aside>
-        <div className="lg:col-span-3 space-y-8" ref={dashboardRef}>
+      <div className={`grid grid-cols-1 ${showFilters ? 'lg:grid-cols-4 lg:gap-8' : ''} space-y-8 lg:space-y-0`}>
+        {showFilters && (
+            <aside className="lg:col-span-1">
+                <Filters
+                    onFilterChange={setFilters}
+                    filters={filters}
+                    options={filterOptions}
+                    initialRanges={initialRanges}
+                />
+            </aside>
+        )}
+        <div className={`${showFilters ? 'lg:col-span-3' : 'lg:col-span-4'} space-y-8`} ref={dashboardRef}>
            <AppliedFilters filters={filters} onFilterChange={setFilters} options={initialRanges} />
           {!hiddenCharts.includes('stats') && <StatsCards students={filteredStudents} />}
-          <DataCharts students={filteredStudents} hiddenCharts={hiddenCharts} onToggleChart={toggleChartVisibility} analysisType={analysisType} />
+          <DataCharts students={filteredStudents} hiddenCharts={hiddenCharts} onToggleChart={toggleChartVisibility} analysisType={analysisType} comparisonCity={comparisonCity} />
           {!hiddenCharts.includes('heatmap') && (
-            <div className="md:col-span-3 relative">
+            <div className="relative">
                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-6 w-6 z-10" onClick={() => toggleChartVisibility('heatmap')}>
                     <X className="h-4 w-4" />
                 </Button>
-                <BrazilHeatmap students={filteredStudents} />
+                <BrazilHeatmap students={filteredStudents} comparisonCity={comparisonCity} />
             </div>
            )}
         </div>
@@ -249,5 +274,3 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
     </div>
   );
 }
-
-    

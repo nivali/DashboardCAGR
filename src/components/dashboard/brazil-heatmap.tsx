@@ -16,6 +16,7 @@ if (typeof Highcharts === 'object') {
 
 interface BrazilHeatmapProps {
   students: Student[];
+  comparisonCity: string;
 }
 
 const stateMapping: { [key: string]: string } = {
@@ -27,21 +28,21 @@ const stateMapping: { [key: string]: string } = {
     'SE': 'br-se', 'TO': 'br-to'
 };
 
-export function BrazilHeatmap({ students }: BrazilHeatmapProps) {
+export function BrazilHeatmap({ students, comparisonCity }: BrazilHeatmapProps) {
   const { stateData, scData } = useMemo(() => {
-    const counts: { [key: string]: { total: number, joinville: number, others: number} } = {};
+    const counts: { [key: string]: { total: number, selectedCity: number, others: number} } = {};
 
     for (const student of students) {
         if(student.ufSG && student.ufSG !== "N/A"){
             const hcKey = stateMapping[student.ufSG];
             if(hcKey) {
                  if (!counts[hcKey]) {
-                    counts[hcKey] = { total: 0, joinville: 0, others: 0 };
+                    counts[hcKey] = { total: 0, selectedCity: 0, others: 0 };
                  }
                  counts[hcKey].total++;
                  if (student.ufSG === 'SC') {
-                    if (student.municipioSG.toLowerCase() === 'joinville') {
-                        counts[hcKey].joinville++;
+                    if (student.municipioSG.toLowerCase() === comparisonCity.toLowerCase()) {
+                        counts[hcKey].selectedCity++;
                     } else {
                         counts[hcKey].others++;
                     }
@@ -51,7 +52,7 @@ export function BrazilHeatmap({ students }: BrazilHeatmapProps) {
     }
     const data = Object.entries(counts).map(([key, value]) => [key, value.total]);
     return { stateData: data, scData: counts['br-sc'] };
-  }, [students]);
+  }, [students, comparisonCity]);
 
   const mapOptions = useMemo(() => {
       const studentCounts = stateData.map(d => d[1] as number);
@@ -76,7 +77,7 @@ export function BrazilHeatmap({ students }: BrazilHeatmapProps) {
         },
         colorAxis: {
             min: 0,
-            max: maxStudents > 0 ? maxStudents : 1, // Avoid max being 0
+            max: maxStudents > 0 ? maxStudents : 1, 
             minColor: '#EAF7E8',
             maxColor: '#0A6847',
         },
@@ -102,13 +103,13 @@ export function BrazilHeatmap({ students }: BrazilHeatmapProps) {
             formatter: function(this: Highcharts.TooltipFormatterContextObject): string {
                 const point = this.point as any;
                 if (point['hc-key'] === 'br-sc' && scData) {
-                    return `${point.name}<br/><b>Total: ${point.value}</b><br/>Joinville: ${scData.joinville}<br/>Demais: ${scData.others}`;
+                    return `${point.name}<br/><b>Total: ${point.value}</b><br/>${comparisonCity}: ${scData.selectedCity}<br/>Demais: ${scData.others}`;
                 }
                 return `${point.name}: <b>${point.value}</b> aluno(s)`;
             }
         },
       }
-  }, [stateData, scData]);
+  }, [stateData, scData, comparisonCity]);
 
   return (
     <Card className="shadow-sm hover:shadow-md transition-shadow h-full">
