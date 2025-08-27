@@ -48,6 +48,7 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
   const [analysisType, setAnalysisType] = useState<'raw' | 'relative'>('raw');
   const [showFilters, setShowFilters] = useState(true);
   const [comparisonCity, setComparisonCity] = useState('Joinville');
+  const [showChartLabels, setShowChartLabels] = useState(true);
 
 
   useEffect(() => {
@@ -181,21 +182,6 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
     try {
         const tempContainer = document.createElement('div');
         tempContainer.innerHTML = dashboardRef.current.outerHTML;
-
-        // Remove interactivity elements that won't work in static HTML
-        const chartContainers = tempContainer.querySelectorAll('[data-recharts-wrapper]');
-        chartContainers.forEach(container => {
-            const svg = container.querySelector('svg');
-            if (svg) {
-                // Replace the complex Recharts SVG with a placeholder or just the SVG content
-                const placeholder = document.createElement('div');
-                placeholder.className = "recharts-static-placeholder";
-                placeholder.style.width = '100%';
-                placeholder.style.height = '100%';
-                placeholder.appendChild(svg.cloneNode(true));
-                container.parentNode?.replaceChild(placeholder, container);
-            }
-        });
         
         const dashboardHtml = tempContainer.innerHTML;
 
@@ -226,8 +212,6 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
                     ${styles}
                     body { font-family: 'Inter', sans-serif; background-color: ${backgroundColor}; }
                     .dashboard-container { margin: 0 auto; padding: 2rem; }
-                    /* Ensure tooltips are visible */
-                    .recharts-tooltip-wrapper { visibility: visible !important; opacity: 1 !important; }
                 </style>
                 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
                 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -238,17 +222,17 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
                     ${dashboardHtml}
                 </div>
                 <script>
-                  // This script will re-enable tooltips on the static charts.
                   document.addEventListener('DOMContentLoaded', function() {
                       setTimeout(() => {
                           const tooltips = document.querySelectorAll('.recharts-tooltip-wrapper');
                           tooltips.forEach(tooltip => {
                               const parentChart = tooltip.closest('.recharts-wrapper');
                               if (parentChart) {
-                                  parentChart.addEventListener('mouseover', () => {
+                                  parentChart.addEventListener('mouseover', (e) => {
                                       tooltip.style.visibility = 'visible';
                                       tooltip.style.opacity = '1';
                                       tooltip.style.transition = 'visibility 0s, opacity 0.2s linear';
+                                      tooltip.style.transform = 'translate(' + e.offsetX + 'px, ' + e.offsetY + 'px)';
                                   });
                                   parentChart.addEventListener('mouseout', () => {
                                        tooltip.style.visibility = 'hidden';
@@ -256,7 +240,7 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
                                   });
                               }
                           });
-                      }, 500); // Small delay to ensure SVGs are rendered
+                      }, 500); 
                   });
               </script>
             </body>
@@ -302,6 +286,14 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
                 onCheckedChange={(checked) => setAnalysisType(checked ? 'relative' : 'raw')}
             />
             <Label htmlFor="analysis-type">Valores Relativos</Label>
+        </div>
+         <div className="flex items-center space-x-2">
+            <Label htmlFor="show-labels">Mostrar Rótulos</Label>
+            <Switch 
+                id="show-labels"
+                checked={showChartLabels}
+                onCheckedChange={setShowChartLabels}
+            />
         </div>
         <div className="flex items-center space-x-2">
             <Label htmlFor="comparison-city">Cidade de Comparação</Label>
@@ -378,7 +370,7 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
                 </div>
                )}
                <div className="flex flex-col space-y-4">
-                 <DataCharts students={filteredStudents} hiddenCharts={hiddenCharts} onToggleChart={toggleChartVisibility} analysisType={analysisType} comparisonCity={comparisonCity} />
+                 <DataCharts students={filteredStudents} hiddenCharts={hiddenCharts} onToggleChart={toggleChartVisibility} analysisType={analysisType} comparisonCity={comparisonCity} showChartLabels={showChartLabels} />
                </div>
             </div>
         </div>

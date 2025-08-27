@@ -21,6 +21,7 @@ interface DataChartsProps {
   onToggleChart: (chartId: string) => void;
   analysisType: 'raw' | 'relative';
   comparisonCity: string;
+  showChartLabels: boolean;
 }
 
 const ChartCard: React.FC<React.PropsWithChildren<{ title: string, description?: string, className?: string, onRemove: () => void }>> = ({ title, description, children, className, onRemove }) => (
@@ -89,7 +90,7 @@ const getStableColor = (name: string): string => {
     return color;
 };
 
-export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType, comparisonCity }: DataChartsProps) {
+export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType, comparisonCity, showChartLabels }: DataChartsProps) {
     const totalStudents = students.length;
 
     const { 
@@ -233,32 +234,6 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
         }
         return value.toLocaleString();
     };
-    
-    const renderCustomizedLabel = (props: any) => {
-        const { x, y, width, height, value } = props;
-        const formattedValue = tooltipFormatter(value);
-        
-        if (width < 30) return null; // Don't render label if bar is too small
-
-        return (
-            <text x={x + width / 2} y={y + height / 2} fill="#fff" textAnchor="middle" dominantBaseline="middle" fontSize="12">
-                {formattedValue}
-            </text>
-        );
-    };
-    
-    const renderVerticalLabel = (props: any) => {
-        const { x, y, width, height, value } = props;
-        const formattedValue = tooltipFormatter(value);
-
-        if (height < 20) return null;
-
-        return (
-            <text x={x + width / 2} y={y - 5} fill="hsl(var(--foreground))" textAnchor="middle" fontSize="12">
-                {formattedValue}
-            </text>
-        );
-    };
 
     const genderConfig = chartConfig(genderData);
     const raceConfig = chartConfig(raceData);
@@ -284,7 +259,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                         {iaaDistributionData.map((entry, index) => (
                            <Cell key={`cell-${index}`} fill={entry.fill} />
                         ))}
-                        <LabelList dataKey="value" position="top" formatter={tooltipFormatter} fontSize={12} />
+                        {showChartLabels && <LabelList dataKey="value" position="top" formatter={tooltipFormatter} fontSize={12} />}
                       </Bar>
                   </BarChart>
               </ResponsiveContainer>
@@ -297,7 +272,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
               <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                       <Pie data={genderData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} 
-                           label={({ name, value }) => `${name}: ${tooltipFormatter(value)}`}
+                           label={showChartLabels ? ({ name, value }) => `${name}: ${tooltipFormatter(value)}` : false}
                       >
                          {genderData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -316,7 +291,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
               <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                       <Pie data={situationData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={80} 
-                        label={({ name, value }) => `${name}: ${tooltipFormatter(value)}`}
+                        label={showChartLabels ? ({ name, value }) => `${name}: ${tooltipFormatter(value)}` : false}
                       >
                         {situationData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -335,7 +310,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
               <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                       <Pie data={nationalityData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} 
-                        label={({ name, value }) => `${name}: ${tooltipFormatter(value)}`}
+                        label={showChartLabels ? ({ name, value }) => `${name}: ${tooltipFormatter(value)}` : false}
                       >
                          {nationalityData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -360,7 +335,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                          {raceData.map((entry, index) => (
                            <Cell key={`cell-${index}`} fill={entry.fill} />
                          ))}
-                          <LabelList dataKey="value" position="right" formatter={tooltipFormatter} fontSize={12} />
+                          {showChartLabels && <LabelList dataKey="value" position="right" formatter={tooltipFormatter} fontSize={12} />}
                       </Bar>
                   </BarChart>
               </ResponsiveContainer>
@@ -379,7 +354,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                          {top7CitiesOutsideSCData.map((entry, index) => (
                            <Cell key={`cell-${index}`} fill={entry.fill} />
                          ))}
-                          <LabelList dataKey="value" position="right" formatter={tooltipFormatter} fontSize={12} />
+                          {showChartLabels && <LabelList dataKey="value" position="right" formatter={tooltipFormatter} fontSize={12} />}
                       </Bar>
                   </BarChart>
               </ResponsiveContainer>
@@ -398,7 +373,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                        {top7CitiesSCData.map((entry, index) => (
                          <Cell key={`cell-${index}`} fill={entry.fill} />
                        ))}
-                        <LabelList dataKey="value" position="right" formatter={tooltipFormatter} fontSize={12} />
+                        {showChartLabels && <LabelList dataKey="value" position="right" formatter={tooltipFormatter} fontSize={12} />}
                     </Bar>
                 </BarChart>
             </ResponsiveContainer>
@@ -415,7 +390,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                 <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
                 <Legend />
                 <Line type="monotone" dataKey="value" stroke="hsl(var(--chart-1))" strokeWidth={2} name="Taxa de Reprovação Média">
-                  <LabelList dataKey="value" position="top" formatter={(v: number) => v.toFixed(2)} />
+                  {showChartLabels && <LabelList dataKey="value" position="top" formatter={(v: number) => v.toFixed(2)} />}
                 </Line>
               </LineChart>
             </ResponsiveContainer>
@@ -433,7 +408,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                       <Legend />
                       {Object.keys(iaaByGenderConfig).map(key => (
                          <Bar key={key} dataKey={key} stackId="a" fill={iaaByGenderConfig[key].color} radius={5}>
-                           <LabelList dataKey={key} formatter={tooltipFormatter} position="center" className="fill-white" />
+                           {showChartLabels && <LabelList dataKey={key} formatter={tooltipFormatter} position="center" className="fill-white" />}
                          </Bar>
                       ))}
                   </BarChart>
@@ -452,7 +427,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                       <Legend wrapperStyle={{paddingTop: 30}} />
                       {Object.keys(iaaByRaceConfig).map(key => (
                          <Bar key={key} dataKey={key} stackId="a" fill={iaaByRaceConfig[key].color} radius={[5, 5, 0, 0]}>
-                            <LabelList dataKey={key} formatter={tooltipFormatter} position="center" className="fill-white" />
+                            {showChartLabels && <LabelList dataKey={key} formatter={tooltipFormatter} position="center" className="fill-white" />}
                          </Bar>
                       ))}
                   </BarChart>
@@ -471,7 +446,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                       <Legend wrapperStyle={{paddingTop: 30}} />
                       {Object.keys(iaaByOriginConfig).map(key => (
                          <Bar key={key} dataKey={key} stackId="a" fill={iaaByOriginConfig[key].color} radius={[5, 5, 0, 0]}>
-                            <LabelList dataKey={key} formatter={tooltipFormatter} position="center" className="fill-white" />
+                            {showChartLabels && <LabelList dataKey={key} formatter={tooltipFormatter} position="center" className="fill-white" />}
                          </Bar>
                       ))}
                   </BarChart>
@@ -492,5 +467,3 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
     </div>
   )
 }
-
-    
