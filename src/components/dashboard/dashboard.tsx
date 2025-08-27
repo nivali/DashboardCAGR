@@ -48,7 +48,7 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
   const [analysisType, setAnalysisType] = useState<'raw' | 'relative'>('raw');
   const [showFilters, setShowFilters] = useState(true);
   const [comparisonCity, setComparisonCity] = useState('Joinville');
-  const [showChartLabels, setShowChartLabels] = useState(true);
+  const [chartsWithLabels, setChartsWithLabels] = useState<string[]>(Object.keys(chartNames));
 
 
   useEffect(() => {
@@ -267,6 +267,12 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
       prev.includes(chartId) ? prev.filter(id => id !== chartId) : [...prev, chartId]
     );
   };
+
+  const toggleChartLabels = (chartId: string) => {
+    setChartsWithLabels(prev => 
+        prev.includes(chartId) ? prev.filter(id => id !== chartId) : [...prev, chartId]
+    );
+  };
   
   const allCharts = Object.keys(chartNames);
 
@@ -286,14 +292,6 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
                 onCheckedChange={(checked) => setAnalysisType(checked ? 'relative' : 'raw')}
             />
             <Label htmlFor="analysis-type">Valores Relativos</Label>
-        </div>
-         <div className="flex items-center space-x-2">
-            <Label htmlFor="show-labels">Mostrar Rótulos</Label>
-            <Switch 
-                id="show-labels"
-                checked={showChartLabels}
-                onCheckedChange={setShowChartLabels}
-            />
         </div>
         <div className="flex items-center space-x-2">
             <Label htmlFor="comparison-city">Cidade de Comparação</Label>
@@ -370,7 +368,15 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
                 </div>
                )}
                <div className="flex flex-col space-y-4">
-                 <DataCharts students={filteredStudents} hiddenCharts={hiddenCharts} onToggleChart={toggleChartVisibility} analysisType={analysisType} comparisonCity={comparisonCity} showChartLabels={showChartLabels} />
+                 <DataCharts 
+                    students={filteredStudents} 
+                    hiddenCharts={hiddenCharts} 
+                    onToggleChart={toggleChartVisibility} 
+                    analysisType={analysisType} 
+                    comparisonCity={comparisonCity} 
+                    chartsWithLabels={chartsWithLabels}
+                    onToggleLabels={toggleChartLabels}
+                  />
                </div>
             </div>
         </div>

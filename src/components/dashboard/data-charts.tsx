@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/chart"
 import { Bar, BarChart, Pie, PieChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, LineChart, Line, Cell, LabelList } from "recharts"
 import { Button } from "../ui/button"
-import { X } from "lucide-react"
+import { X, Tag } from "lucide-react"
 
 interface DataChartsProps {
   students: Student[];
@@ -21,14 +21,28 @@ interface DataChartsProps {
   onToggleChart: (chartId: string) => void;
   analysisType: 'raw' | 'relative';
   comparisonCity: string;
-  showChartLabels: boolean;
+  chartsWithLabels: string[];
+  onToggleLabels: (chartId: string) => void;
 }
 
-const ChartCard: React.FC<React.PropsWithChildren<{ title: string, description?: string, className?: string, onRemove: () => void }>> = ({ title, description, children, className, onRemove }) => (
+const ChartCard: React.FC<React.PropsWithChildren<{ 
+    title: string, 
+    chartId: string,
+    description?: string, 
+    className?: string, 
+    onRemove: () => void,
+    onToggleLabels: () => void,
+    labelsVisible: boolean,
+}>> = ({ title, chartId, description, children, className, onRemove, onToggleLabels, labelsVisible }) => (
     <Card className={`shadow-sm hover:shadow-md transition-shadow relative flex flex-col ${className}`}>
-        <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-6 w-6 z-10" onClick={onRemove}>
-            <X className="h-4 w-4" />
-        </Button>
+        <div className="absolute top-2 right-2 z-10 flex items-center gap-1">
+            <Button variant={labelsVisible ? "secondary" : "ghost"} size="icon" className="h-6 w-6" onClick={onToggleLabels}>
+                <Tag className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onRemove}>
+                <X className="h-4 w-4" />
+            </Button>
+        </div>
         <CardHeader>
             <CardTitle>{title}</CardTitle>
             {description && <CardDescription>{description}</CardDescription>}
@@ -90,7 +104,7 @@ const getStableColor = (name: string): string => {
     return color;
 };
 
-export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType, comparisonCity, showChartLabels }: DataChartsProps) {
+export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType, comparisonCity, chartsWithLabels, onToggleLabels }: DataChartsProps) {
     const totalStudents = students.length;
 
     const { 
@@ -248,7 +262,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
     
     const charts = [
       { id: 'iaaDistribution', title: 'Distribuição de IAA', component: (
-          <ChartCard title="Distribuição de IAA por Faixa" onRemove={() => onToggleChart('iaaDistribution')}>
+          <ChartCard chartId="iaaDistribution" title="Distribuição de IAA por Faixa" onRemove={() => onToggleChart('iaaDistribution')} onToggleLabels={() => onToggleLabels('iaaDistribution')} labelsVisible={chartsWithLabels.includes('iaaDistribution')}>
             <ChartContainer config={iaaDistributionConfig}>
               <ResponsiveContainer width="100%" height={400}>
                   <BarChart data={iaaDistributionData} margin={{ left: 0, right: 30, top: 20, bottom: 60 }}>
@@ -259,7 +273,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                         {iaaDistributionData.map((entry, index) => (
                            <Cell key={`cell-${index}`} fill={entry.fill} />
                         ))}
-                        {showChartLabels && <LabelList dataKey="value" position="top" formatter={tooltipFormatter} fontSize={12} />}
+                        {chartsWithLabels.includes('iaaDistribution') && <LabelList dataKey="value" position="top" formatter={tooltipFormatter} fontSize={12} />}
                       </Bar>
                   </BarChart>
               </ResponsiveContainer>
@@ -267,12 +281,12 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
           </ChartCard>
       )},
       { id: 'gender', title: 'Distribuição por Gênero', component: (
-          <ChartCard title="Distribuição por Gênero" onRemove={() => onToggleChart('gender')}>
+          <ChartCard chartId="gender" title="Distribuição por Gênero" onRemove={() => onToggleChart('gender')} onToggleLabels={() => onToggleLabels('gender')} labelsVisible={chartsWithLabels.includes('gender')}>
              <ChartContainer config={genderConfig}>
               <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                       <Pie data={genderData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} 
-                           label={showChartLabels ? ({ name, value }) => `${name}: ${tooltipFormatter(value)}` : false}
+                           label={chartsWithLabels.includes('gender') ? ({ name, value }) => `${name}: ${tooltipFormatter(value)}` : false}
                       >
                          {genderData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -286,12 +300,12 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
           </ChartCard>
       )},
       { id: 'situation', title: 'Distribuição por Situação', component: (
-           <ChartCard title="Distribuição por Situação" onRemove={() => onToggleChart('situation')}>
+           <ChartCard chartId="situation" title="Distribuição por Situação" onRemove={() => onToggleChart('situation')} onToggleLabels={() => onToggleLabels('situation')} labelsVisible={chartsWithLabels.includes('situation')}>
              <ChartContainer config={situationConfig}>
               <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                       <Pie data={situationData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={80} 
-                        label={showChartLabels ? ({ name, value }) => `${name}: ${tooltipFormatter(value)}` : false}
+                        label={chartsWithLabels.includes('situation') ? ({ name, value }) => `${name}: ${tooltipFormatter(value)}` : false}
                       >
                         {situationData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -305,12 +319,12 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
           </ChartCard>
       )},
       { id: 'nationality', title: 'Distribuição por Nacionalidade', component: (
-          <ChartCard title="Distribuição por Nacionalidade" onRemove={() => onToggleChart('nationality')}>
+          <ChartCard chartId="nationality" title="Distribuição por Nacionalidade" onRemove={() => onToggleChart('nationality')} onToggleLabels={() => onToggleLabels('nationality')} labelsVisible={chartsWithLabels.includes('nationality')}>
             <ChartContainer config={nationalityConfig}>
               <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                       <Pie data={nationalityData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} 
-                        label={showChartLabels ? ({ name, value }) => `${name}: ${tooltipFormatter(value)}` : false}
+                        label={chartsWithLabels.includes('nationality') ? ({ name, value }) => `${name}: ${tooltipFormatter(value)}` : false}
                       >
                          {nationalityData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -324,7 +338,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
           </ChartCard>
       )},
       { id: 'race', title: 'Distribuição por Raça/Cor', component: (
-          <ChartCard title="Distribuição por Raça/Cor" onRemove={() => onToggleChart('race')}>
+          <ChartCard chartId="race" title="Distribuição por Raça/Cor" onRemove={() => onToggleChart('race')} onToggleLabels={() => onToggleLabels('race')} labelsVisible={chartsWithLabels.includes('race')}>
             <ChartContainer config={raceConfig}>
               <ResponsiveContainer width="100%" height={350}>
                   <BarChart data={raceData} layout="vertical" margin={{ left: 60, right: 40 }}>
@@ -335,7 +349,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                          {raceData.map((entry, index) => (
                            <Cell key={`cell-${index}`} fill={entry.fill} />
                          ))}
-                          {showChartLabels && <LabelList dataKey="value" position="right" formatter={tooltipFormatter} fontSize={12} />}
+                          {chartsWithLabels.includes('race') && <LabelList dataKey="value" position="right" formatter={tooltipFormatter} fontSize={12} />}
                       </Bar>
                   </BarChart>
               </ResponsiveContainer>
@@ -343,7 +357,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
           </ChartCard>
       )},
       { id: 'topCitiesOutsideSC', title: 'Top 7 Cidades (Fora de SC)', component: (
-          <ChartCard title="Top 7 Cidades de Origem (Fora de SC)" onRemove={() => onToggleChart('topCitiesOutsideSC')}>
+          <ChartCard chartId="topCitiesOutsideSC" title="Top 7 Cidades de Origem (Fora de SC)" onRemove={() => onToggleChart('topCitiesOutsideSC')} onToggleLabels={() => onToggleLabels('topCitiesOutsideSC')} labelsVisible={chartsWithLabels.includes('topCitiesOutsideSC')}>
             <ChartContainer config={top7CitiesOutsideSCConfig}>
               <ResponsiveContainer width="100%" height={350}>
                   <BarChart data={top7CitiesOutsideSCData} layout="vertical" margin={{ left: 60, right: 40 }} barSize={20}>
@@ -354,7 +368,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                          {top7CitiesOutsideSCData.map((entry, index) => (
                            <Cell key={`cell-${index}`} fill={entry.fill} />
                          ))}
-                          {showChartLabels && <LabelList dataKey="value" position="right" formatter={tooltipFormatter} fontSize={12} />}
+                          {chartsWithLabels.includes('topCitiesOutsideSC') && <LabelList dataKey="value" position="right" formatter={tooltipFormatter} fontSize={12} />}
                       </Bar>
                   </BarChart>
               </ResponsiveContainer>
@@ -362,7 +376,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
           </ChartCard>
       )},
       { id: 'topCitiesSC', title: 'Top 7 Cidades (SC)', component: (
-        <ChartCard title="Top 7 Cidades de Origem (SC)" onRemove={() => onToggleChart('topCitiesSC')}>
+        <ChartCard chartId="topCitiesSC" title="Top 7 Cidades de Origem (SC)" onRemove={() => onToggleChart('topCitiesSC')} onToggleLabels={() => onToggleLabels('topCitiesSC')} labelsVisible={chartsWithLabels.includes('topCitiesSC')}>
           <ChartContainer config={top7CitiesSCConfig}>
             <ResponsiveContainer width="100%" height={350}>
                 <BarChart data={top7CitiesSCData} layout="vertical" margin={{ left: 60, right: 40 }} barSize={20}>
@@ -373,7 +387,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                        {top7CitiesSCData.map((entry, index) => (
                          <Cell key={`cell-${index}`} fill={entry.fill} />
                        ))}
-                        {showChartLabels && <LabelList dataKey="value" position="right" formatter={tooltipFormatter} fontSize={12} />}
+                        {chartsWithLabels.includes('topCitiesSC') && <LabelList dataKey="value" position="right" formatter={tooltipFormatter} fontSize={12} />}
                     </Bar>
                 </BarChart>
             </ResponsiveContainer>
@@ -381,7 +395,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
         </ChartCard>
     )},
        { id: 'failureRate', title: 'Taxa de Reprovação Média por Semestre', component: (
-        <ChartCard title="Taxa de Reprovação Média por Semestre" description="Diferença média entre IAA e IAP" onRemove={() => onToggleChart('failureRate')}>
+        <ChartCard chartId="failureRate" title="Taxa de Reprovação Média por Semestre" description="Diferença média entre IAA e IAP" onRemove={() => onToggleChart('failureRate')} onToggleLabels={() => onToggleLabels('failureRate')} labelsVisible={chartsWithLabels.includes('failureRate')}>
           <ChartContainer config={{value: {label: 'Taxa de Reprovação Média', color: 'hsl(var(--chart-1))'}}}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={failureRateBySemesterData} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
@@ -390,7 +404,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                 <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
                 <Legend />
                 <Line type="monotone" dataKey="value" stroke="hsl(var(--chart-1))" strokeWidth={2} name="Taxa de Reprovação Média">
-                  {showChartLabels && <LabelList dataKey="value" position="top" formatter={(v: number) => v.toFixed(2)} />}
+                  {chartsWithLabels.includes('failureRate') && <LabelList dataKey="value" position="top" formatter={(v: number) => v.toFixed(2)} />}
                 </Line>
               </LineChart>
             </ResponsiveContainer>
@@ -398,7 +412,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
         </ChartCard>
       )},
       { id: 'iaaByGender', title: 'Quartis de IAA por Gênero', component: (
-           <ChartCard title="Quartis de IAA por Gênero" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`} onRemove={() => onToggleChart('iaaByGender')}>
+           <ChartCard chartId="iaaByGender" title="Quartis de IAA por Gênero" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`} onRemove={() => onToggleChart('iaaByGender')} onToggleLabels={() => onToggleLabels('iaaByGender')} labelsVisible={chartsWithLabels.includes('iaaByGender')}>
             <ChartContainer config={iaaByGenderConfig}>
               <ResponsiveContainer width="100%" height={350}>
                   <BarChart data={iaaByGenderData} layout="vertical">
@@ -408,7 +422,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                       <Legend />
                       {Object.keys(iaaByGenderConfig).map(key => (
                          <Bar key={key} dataKey={key} stackId="a" fill={iaaByGenderConfig[key].color} radius={5}>
-                           {showChartLabels && <LabelList dataKey={key} formatter={tooltipFormatter} position="center" className="fill-white" />}
+                           {chartsWithLabels.includes('iaaByGender') && <LabelList dataKey={key} formatter={tooltipFormatter} position="center" className="fill-white" />}
                          </Bar>
                       ))}
                   </BarChart>
@@ -417,7 +431,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
           </ChartCard>
       )},
       { id: 'iaaByRace', title: 'Quartis de IAA por Raça/Cor', component: (
-          <ChartCard title="Quartis de IAA por Raça/Cor" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`} onRemove={() => onToggleChart('iaaByRace')}>
+          <ChartCard chartId="iaaByRace" title="Quartis de IAA por Raça/Cor" description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`} onRemove={() => onToggleChart('iaaByRace')} onToggleLabels={() => onToggleLabels('iaaByRace')} labelsVisible={chartsWithLabels.includes('iaaByRace')}>
             <ChartContainer config={iaaByRaceConfig}>
               <ResponsiveContainer width="100%" height={400}>
                    <BarChart data={iaaByRaceData} layout="horizontal" margin={{bottom: 20}}>
@@ -427,7 +441,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                       <Legend wrapperStyle={{paddingTop: 30}} />
                       {Object.keys(iaaByRaceConfig).map(key => (
                          <Bar key={key} dataKey={key} stackId="a" fill={iaaByRaceConfig[key].color} radius={[5, 5, 0, 0]}>
-                            {showChartLabels && <LabelList dataKey={key} formatter={tooltipFormatter} position="center" className="fill-white" />}
+                            {chartsWithLabels.includes('iaaByRace') && <LabelList dataKey={key} formatter={tooltipFormatter} position="center" className="fill-white" />}
                          </Bar>
                       ))}
                   </BarChart>
@@ -436,7 +450,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
           </ChartCard>
       )},
       { id: 'iaaByOrigin', title: `Quartis de IAA: ${comparisonCity} vs Externo`, component: (
-          <ChartCard title={`Quartis de IAA: ${comparisonCity} vs Externo`} description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`} onRemove={() => onToggleChart('iaaByOrigin')}>
+          <ChartCard chartId="iaaByOrigin" title={`Quartis de IAA: ${comparisonCity} vs Externo`} description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`} onRemove={() => onToggleChart('iaaByOrigin')} onToggleLabels={() => onToggleLabels('iaaByOrigin')} labelsVisible={chartsWithLabels.includes('iaaByOrigin')}>
             <ChartContainer config={iaaByOriginConfig}>
               <ResponsiveContainer width="100%" height={400}>
                   <BarChart data={iaaByOriginData} layout="horizontal" margin={{bottom: 20}}>
@@ -446,7 +460,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                       <Legend wrapperStyle={{paddingTop: 30}} />
                       {Object.keys(iaaByOriginConfig).map(key => (
                          <Bar key={key} dataKey={key} stackId="a" fill={iaaByOriginConfig[key].color} radius={[5, 5, 0, 0]}>
-                            {showChartLabels && <LabelList dataKey={key} formatter={tooltipFormatter} position="center" className="fill-white" />}
+                            {chartsWithLabels.includes('iaaByOrigin') && <LabelList dataKey={key} formatter={tooltipFormatter} position="center" className="fill-white" />}
                          </Bar>
                       ))}
                   </BarChart>
