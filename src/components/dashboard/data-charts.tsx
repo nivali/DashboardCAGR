@@ -124,7 +124,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
             "0-1000": 0, "1001-2000": 0, "2001-3000": 0, "3001-4000": 0, "4001-5000": 0,
             "5001-6000": 0, "6001-7000": 0, "7001-8000": 0, "8001-9000": 0, "9001-10000": 0
         };
-        const failureRateBySemester: { [semester: number]: { totalRate: number, count: number } } = {};
+        const failureRateBySemester: { [semester: string]: { totalRate: number, count: number } } = {};
         
         const sortedIaa = students.map(s => s.iaa).filter(iaa => iaa > 0).sort((a, b) => a - b);
         const q1 = sortedIaa[Math.floor(sortedIaa.length / 4)] || 0;
@@ -175,12 +175,12 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
 
             if (student.iap !== undefined && student.iaa > 0 && student.iap > 0) {
               const failureRate = student.iaa - student.iap;
-              const semester = student.semestersInCourse;
-              if (!failureRateBySemester[semester]) {
-                failureRateBySemester[semester] = { totalRate: 0, count: 0 };
+              const semesterKey = `${student.anoIngresso}/${student.semestreIngresso}`;
+              if (!failureRateBySemester[semesterKey]) {
+                failureRateBySemester[semesterKey] = { totalRate: 0, count: 0 };
               }
-              failureRateBySemester[semester].totalRate += failureRate;
-              failureRateBySemester[semester].count++;
+              failureRateBySemester[semesterKey].totalRate += failureRate;
+              failureRateBySemester[semesterKey].count++;
             }
         }
         
@@ -194,10 +194,15 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
 
         const calculatedFailureRateData = Object.entries(failureRateBySemester)
           .map(([semester, data]) => ({
-            name: `${semester}º Sem.`,
+            name: semester,
             value: data.count > 0 ? parseFloat((data.totalRate / data.count).toFixed(2)) : 0,
           }))
-          .sort((a, b) => parseInt(a.name) - parseInt(b.name));
+          .sort((a, b) => {
+            const [yearA, semA] = a.name.split('/').map(Number);
+            const [yearB, semB] = b.name.split('/').map(Number);
+            if (yearA !== yearB) return yearA - yearB;
+            return semA - semB;
+          });
         
         const sortedCitiesOutsideSC = Object.entries(cityCountsOutsideSC).sort(([, a], [, b]) => b - a).slice(0, 7);
         const top7TotalOutsideSC = sortedCitiesOutsideSC.reduce((sum, [, count]) => sum + count, 0);
@@ -247,12 +252,12 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
 
     const stackedTooltipFormatter = (value: number, name: string, props: any) => {
         const formattedValue = analysisType === 'relative' ? `${value.toFixed(2)}%` : value.toLocaleString();
-        return [`${formattedValue}`, name];
+        return [`${formattedValue}`, `${props.payload.name}: ${name}`];
     };
     
     const labelFormatter = (value: number) => {
          if (analysisType === 'relative') {
-            return `${value.toFixed(2)}%`;
+            return `${value.toFixed(1)}%`;
         }
         return value.toLocaleString();
     }
@@ -404,15 +409,15 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
         </ChartCard>
     )},
        { id: 'failureRate', title: 'Desempenho Acadêmico por Semestre', component: (
-        <ChartCard chartId="failureRate" title="Desempenho Acadêmico por Semestre" description="Diferença média entre IAA e IAP" onRemove={() => onToggleChart('failureRate')} onToggleLabels={() => onToggleLabels('failureRate')} labelsVisible={chartsWithLabels.includes('failureRate')}>
+        <ChartCard chartId="failureRate" title="Desempenho Acadêmico por Semestre de Ingresso" description="Diferença média entre IAA e IAP por turma" onRemove={() => onToggleChart('failureRate')} onToggleLabels={() => onToggleLabels('failureRate')} labelsVisible={chartsWithLabels.includes('failureRate')}>
           <ChartContainer config={{value: {label: 'Diferença Média IAA-IAP', color: 'hsl(var(--chart-1))'}}}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={failureRateBySemesterData} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
                 <XAxis dataKey="name" />
                 <YAxis />
-                <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={(value, name, item) => [`${value.toFixed(2)}`, item.payload.name]} />} />
+                <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={(value, name, item) => [`${(value as number).toFixed(2)}`, item.payload.name]} />} />
                 <Legend />
-                <Line type="monotone" dataKey="value" stroke="hsl(var(--chart-1))" strokeWidth={2} name={`Desempenho (${currentAcademicTerm})`}>
+                <Line type="monotone" dataKey="value" stroke="hsl(var(--chart-1))" strokeWidth={2} name={`Desempenho da Turma`}>
                   {chartsWithLabels.includes('failureRate') && <LabelList dataKey="value" position="top" formatter={(v: number) => v.toFixed(2)} />}
                 </Line>
               </LineChart>
@@ -431,7 +436,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                       <Legend />
                       {Object.keys(iaaByGenderConfig).map(key => (
                          <Bar key={key} dataKey={key} stackId="a" fill={iaaByGenderConfig[key].color} radius={5}>
-                           {chartsWithLabels.includes('iaaByGender') && <LabelList dataKey={key} formatter={labelFormatter} position="center" className="fill-white" />}
+                           {chartsWithLabels.includes('iaaByGender') && <LabelList dataKey={key} formatter={(v) => labelFormatter(v as number)} position="center" className="fill-white" />}
                          </Bar>
                       ))}
                   </BarChart>
@@ -450,7 +455,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                       <Legend wrapperStyle={{paddingTop: 30}} />
                       {Object.keys(iaaByRaceConfig).map(key => (
                          <Bar key={key} dataKey={key} stackId="a" fill={iaaByRaceConfig[key].color} radius={[5, 5, 0, 0]}>
-                            {chartsWithLabels.includes('iaaByRace') && <LabelList dataKey={key} formatter={labelFormatter} position="center" className="fill-white" />}
+                            {chartsWithLabels.includes('iaaByRace') && <LabelList dataKey={key} formatter={(v) => labelFormatter(v as number)} position="center" className="fill-white" />}
                          </Bar>
                       ))}
                   </BarChart>
@@ -469,7 +474,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                       <Legend wrapperStyle={{paddingTop: 30}} />
                       {Object.keys(iaaByOriginConfig).map(key => (
                          <Bar key={key} dataKey={key} stackId="a" fill={iaaByOriginConfig[key].color} radius={[5, 5, 0, 0]}>
-                            {chartsWithLabels.includes('iaaByOrigin') && <LabelList dataKey={key} formatter={labelFormatter} position="center" className="fill-white" />}
+                            {chartsWithLabels.includes('iaaByOrigin') && <LabelList dataKey={key} formatter={(v) => labelFormatter(v as number)} position="center" className="fill-white" />}
                          </Bar>
                       ))}
                   </BarChart>
@@ -482,14 +487,17 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
             <ChartCard chartId="iaaByCourse" title={`Quartis de IAA por Curso`} description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`} onRemove={() => onToggleChart('iaaByCourse')} onToggleLabels={() => onToggleLabels('iaaByCourse')} labelsVisible={chartsWithLabels.includes('iaaByCourse')}>
               <ChartContainer config={iaaByCourseConfig}>
                 <ResponsiveContainer width="100%" height={Math.max(200, iaaByCourseData.length * 80)}>
-                    <BarChart data={iaaByCourseData} layout="vertical" stackOffset="expand" margin={{ left: 20, right: 20, bottom: 20, top: 20 }}>
+                    <BarChart data={iaaByCourseData} layout="vertical" stackOffset="expand" margin={{ right: 20, bottom: 20, top: 20 }}>
                         <XAxis type="number" hide tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}/>
                         <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={150} />
-                        <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={stackedTooltipFormatter} />} />
+                        <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={(value, name, props) => {
+                            const formattedValue = `${((value as number) * 100).toFixed(1)}%`;
+                            return [formattedValue, name];
+                        }} />} />
                         <Legend />
                         {Object.keys(iaaByCourseConfig).map(key => (
                            <Bar key={key} dataKey={key} stackId="a" fill={iaaByCourseConfig[key].color} radius={5}>
-                              {chartsWithLabels.includes('iaaByCourse') && <LabelList dataKey={key} formatter={(value) => labelFormatter(value as number)} position="center" className="fill-white" />}
+                              {chartsWithLabels.includes('iaaByCourse') && <LabelList dataKey={key} formatter={(value) => labelFormatter((value as number) * 100)} position="center" className="fill-white" />}
                            </Bar>
                         ))}
                     </BarChart>
