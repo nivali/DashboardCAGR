@@ -179,57 +179,104 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
 
     setIsSaving(true);
     try {
-      const dashboardHtml = dashboardRef.current.outerHTML;
-      const styles = Array.from(document.styleSheets)
-        .map(styleSheet => {
-          try {
-            return Array.from(styleSheet.cssRules)
-              .map(rule => rule.cssText)
-              .join('\n');
-          } catch (e) {
-            console.warn("Could not read stylesheet rules", e);
-            return '';
-          }
-        })
-        .join('\n');
+        const tempContainer = document.createElement('div');
+        tempContainer.innerHTML = dashboardRef.current.outerHTML;
 
-      const fullHtml = `
-        <!DOCTYPE html>
-        <html lang="pt-BR">
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Dashboard Estático - AlunoVis</title>
-            <link rel="preconnect" href="https://fonts.googleapis.com" />
-            <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-            <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
-            <style>
-              ${styles}
-              body { font-family: 'Inter', sans-serif; background-color: ${backgroundColor}; }
-              .dashboard-container { margin: 0 auto; padding: 2rem; }
-            </style>
-          </head>
-          <body>
-            <div class="dashboard-container">
-              ${dashboardHtml}
-            </div>
-          </body>
-        </html>
-      `;
+        // Remove interactivity elements that won't work in static HTML
+        const chartContainers = tempContainer.querySelectorAll('[data-recharts-wrapper]');
+        chartContainers.forEach(container => {
+            const svg = container.querySelector('svg');
+            if (svg) {
+                // Replace the complex Recharts SVG with a placeholder or just the SVG content
+                const placeholder = document.createElement('div');
+                placeholder.className = "recharts-static-placeholder";
+                placeholder.style.width = '100%';
+                placeholder.style.height = '100%';
+                placeholder.appendChild(svg.cloneNode(true));
+                container.parentNode?.replaceChild(placeholder, container);
+            }
+        });
+        
+        const dashboardHtml = tempContainer.innerHTML;
 
-      const blob = new Blob([fullHtml], { type: 'text/html' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'dashboard.html';
-      link.click();
-      URL.revokeObjectURL(link.href);
+        const styles = Array.from(document.styleSheets)
+            .map(styleSheet => {
+                try {
+                    return Array.from(styleSheet.cssRules)
+                        .map(rule => rule.cssText)
+                        .join('\n');
+                } catch (e) {
+                    console.warn("Could not read stylesheet rules", e);
+                    return '';
+                }
+            })
+            .join('\n');
+
+        const fullHtml = `
+            <!DOCTYPE html>
+            <html lang="pt-BR">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Dashboard Estático - AlunoVis</title>
+                <link rel="preconnect" href="https://fonts.googleapis.com" />
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+                <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
+                <style>
+                    ${styles}
+                    body { font-family: 'Inter', sans-serif; background-color: ${backgroundColor}; }
+                    .dashboard-container { margin: 0 auto; padding: 2rem; }
+                    /* Ensure tooltips are visible */
+                    .recharts-tooltip-wrapper { visibility: visible !important; opacity: 1 !important; }
+                </style>
+                <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+                <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+                <script src="https://unpkg.com/recharts/umd/Recharts.min.js"></script>
+            </head>
+            <body>
+                <div class="dashboard-container">
+                    ${dashboardHtml}
+                </div>
+                <script>
+                  // This script will re-enable tooltips on the static charts.
+                  document.addEventListener('DOMContentLoaded', function() {
+                      setTimeout(() => {
+                          const tooltips = document.querySelectorAll('.recharts-tooltip-wrapper');
+                          tooltips.forEach(tooltip => {
+                              const parentChart = tooltip.closest('.recharts-wrapper');
+                              if (parentChart) {
+                                  parentChart.addEventListener('mouseover', () => {
+                                      tooltip.style.visibility = 'visible';
+                                      tooltip.style.opacity = '1';
+                                      tooltip.style.transition = 'visibility 0s, opacity 0.2s linear';
+                                  });
+                                  parentChart.addEventListener('mouseout', () => {
+                                       tooltip.style.visibility = 'hidden';
+                                       tooltip.style.opacity = '0';
+                                  });
+                              }
+                          });
+                      }, 500); // Small delay to ensure SVGs are rendered
+                  });
+              </script>
+            </body>
+            </html>
+        `;
+
+        const blob = new Blob([fullHtml], { type: 'text/html' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'dashboard.html';
+        link.click();
+        URL.revokeObjectURL(link.href);
 
     } catch (error) {
-      console.error("Erro ao salvar o HTML:", error);
+        console.error("Erro ao salvar o HTML:", error);
     } finally {
-      setIsSaving(false);
+        setIsSaving(false);
     }
-  }
+}
+
 
   const toggleChartVisibility = (chartId: string) => {
     setHiddenCharts(prev => 
