@@ -6,6 +6,7 @@ export interface Student {
   racaCor: string;
   dataNascimento: string;
   age: number;
+  idadeIngresso: number;
   naturalidade: string;
   nacionalidade: string;
   unidadeFederativa: string;

@@ -47,8 +47,8 @@ const parseAndTransformData = (csvText: string): Student[] => {
         const dataNascimentoStr = values[indices.dataNascimento];
         if (!/^\d{2}-\d{2}-\d{4}$/.test(dataNascimentoStr)) return null;
         
-        const [day, month, year] = dataNascimentoStr.split('-').map(Number);
-        const birthDate = new Date(year, month - 1, day);
+        const [day, month, birthYear] = dataNascimentoStr.split('-').map(Number);
+        const birthDate = new Date(birthYear, month - 1, day);
         let age = new Date().getFullYear() - birthDate.getFullYear();
         const m = new Date().getMonth() - birthDate.getMonth();
         if (m < 0 || (m === 0 && new Date().getDate() < birthDate.getDate())) {
@@ -77,6 +77,13 @@ const parseAndTransformData = (csvText: string): Student[] => {
         const iapStr = values[indices['IAP-indiceAproveitamentoAprovacoes']];
         const iap = iapStr ? parseFloat(iapStr.replace(',', '.')) : 0;
 
+        const semestreIngressoDate = new Date(anoIngresso, semestreIngresso === 1 ? 1 : 7, 1);
+        let idadeIngresso = anoIngresso - birthYear;
+        const monthDiff = semestreIngressoDate.getMonth() - birthDate.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && semestreIngressoDate.getDate() < birthDate.getDate())) {
+            idadeIngresso--;
+        }
+
         return {
             nomeCurso: (values[indices.nomeCurso] || 'N/A').replace(/\[.*?\]/g, '').trim(),
             situacao: values[indices.Situacao] || 'N/A',
@@ -84,6 +91,7 @@ const parseAndTransformData = (csvText: string): Student[] => {
             racaCor: values[indices.racaCor] || 'N/A',
             dataNascimento: dataNascimentoStr,
             age: age,
+            idadeIngresso: idadeIngresso,
             naturalidade: naturalidade,
             nacionalidade: values[indices.Nacionalidade] === 'Brasil' ? 'Brasileiro(a)' : 'Estrangeiro(a)',
             unidadeFederativa: unidadeFederativa,

@@ -1,9 +1,10 @@
+
 "use client"
 
 import { useMemo } from "react"
 import type { Student } from "@/types/student"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Users, Cake, Percent, GraduationCap } from "lucide-react"
+import { Users, Cake, Percent, GraduationCap, CalendarPlus } from "lucide-react"
 
 interface StatsCardsProps {
   students: Student[]
@@ -15,18 +16,21 @@ export function StatsCards({ students }: StatsCardsProps) {
       return {
         total: 0,
         avgAge: 0,
+        avgEntryAge: 0,
         avgIaa: 0,
         avgSemesters: 0,
       }
     }
 
     const totalAge = students.reduce((sum, s) => sum + s.age, 0)
+    const totalEntryAge = students.reduce((sum, s) => sum + s.idadeIngresso, 0)
     const totalIaa = students.reduce((sum, s) => sum + s.iaa, 0)
     const totalSemesters = students.reduce((sum, s) => sum + s.semestersInCourse, 0)
 
     return {
       total: students.length,
       avgAge: totalAge / students.length,
+      avgEntryAge: totalEntryAge / students.length,
       avgIaa: totalIaa / students.length,
       avgSemesters: totalSemesters / students.length,
     }
@@ -56,8 +60,14 @@ export function StatsCards({ students }: StatsCardsProps) {
       />
       <StatCard 
         icon={<Cake className="h-4 w-4 text-muted-foreground" />} 
-        title="Idade Média" 
+        title="Idade Média (Atual)" 
         value={stats.avgAge.toFixed(1)}
+        unit="anos"
+      />
+      <StatCard 
+        icon={<CalendarPlus className="h-4 w-4 text-muted-foreground" />} 
+        title="Idade Média (Ingresso)" 
+        value={stats.avgEntryAge.toFixed(1)}
         unit="anos"
       />
       <StatCard 

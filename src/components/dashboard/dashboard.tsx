@@ -269,7 +269,9 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
                     <BrazilHeatmap students={filteredStudents} comparisonCity={comparisonCity} analysisType={analysisType} />
                 </div>
                )}
-               <DataCharts students={filteredStudents} hiddenCharts={hiddenCharts} onToggleChart={toggleChartVisibility} analysisType={analysisType} comparisonCity={comparisonCity} />
+               <div className="flex flex-col space-y-4">
+                 <DataCharts students={filteredStudents} hiddenCharts={hiddenCharts} onToggleChart={toggleChartVisibility} analysisType={analysisType} comparisonCity={comparisonCity} />
+               </div>
             </div>
         </div>
       </div>
