@@ -23,6 +23,7 @@ interface DataChartsProps {
   comparisonCity: string;
   chartsWithLabels: string[];
   onToggleLabels: (chartId: string) => void;
+  availableCourses: string[];
 }
 
 const ChartCard: React.FC<React.PropsWithChildren<{ 
@@ -104,12 +105,12 @@ const getStableColor = (name: string): string => {
     return color;
 };
 
-export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType, comparisonCity, chartsWithLabels, onToggleLabels }: DataChartsProps) {
+export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType, comparisonCity, chartsWithLabels, onToggleLabels, availableCourses }: DataChartsProps) {
     const totalStudents = students.length;
 
     const { 
         genderData, raceData, situationData, nationalityData,
-        iaaByGenderData, iaaByRaceData, iaaByOriginData, iaaQuartiles,
+        iaaByGenderData, iaaByRaceData, iaaByOriginData, iaaByCourseData, iaaQuartiles,
         iaaDistributionData, failureRateBySemesterData, top7CitiesOutsideSCData, top7CitiesSCData
     } = useMemo(() => {
         const genderCounts: { [key: string]: number } = {}
@@ -133,6 +134,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
         const iaaGenderPairs: {primary: string, secondary: string}[] = [];
         const iaaRacePairs: {primary: string, secondary: string}[] = [];
         const iaaOriginPairs: {primary: string, secondary: string}[] = [];
+        const iaaCoursePairs: {primary: string, secondary: string}[] = [];
 
         for (const student of students) {
             genderCounts[student.sexo] = (genderCounts[student.sexo] || 0) + 1;
@@ -167,6 +169,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                 iaaRacePairs.push({ primary: iaaQuartile, secondary: student.racaCor });
                 const origin = student.municipioSG.toLowerCase() === comparisonCity.toLowerCase() ? comparisonCity : 'Externo';
                 iaaOriginPairs.push({ primary: iaaQuartile, secondary: origin });
+                iaaCoursePairs.push({ primary: student.nomeCurso, secondary: iaaQuartile });
             }
 
             if (student.iap !== undefined && student.iaa > 0 && student.iap > 0) {
@@ -209,6 +212,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
             iaaByGenderData: aggregateNestedData(iaaGenderPairs, analysisType),
             iaaByRaceData: aggregateNestedData(iaaRacePairs, analysisType),
             iaaByOriginData: aggregateNestedData(iaaOriginPairs, analysisType),
+            iaaByCourseData: aggregateNestedData(iaaCoursePairs, analysisType),
             iaaQuartiles: {q1, q2, q3},
             iaaDistributionData: toChartData(iaaRanges),
             failureRateBySemesterData: calculatedFailureRateData,
@@ -256,6 +260,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
     const iaaByGenderConfig = stackedChartConfig(iaaByGenderData);
     const iaaByRaceConfig = stackedChartConfig(iaaByRaceData);
     const iaaByOriginConfig = stackedChartConfig(iaaByOriginData);
+    const iaaByCourseConfig = stackedChartConfig(iaaByCourseData);
     const iaaDistributionConfig = chartConfig(iaaDistributionData);
     const top7CitiesOutsideSCConfig = chartConfig(top7CitiesOutsideSCData);
     const top7CitiesSCConfig = chartConfig(top7CitiesSCData);
@@ -394,16 +399,16 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
            </ChartContainer>
         </ChartCard>
     )},
-       { id: 'failureRate', title: 'Taxa de Reprovação Média por Semestre', component: (
-        <ChartCard chartId="failureRate" title="Taxa de Reprovação Média por Semestre" description="Diferença média entre IAA e IAP" onRemove={() => onToggleChart('failureRate')} onToggleLabels={() => onToggleLabels('failureRate')} labelsVisible={chartsWithLabels.includes('failureRate')}>
-          <ChartContainer config={{value: {label: 'Taxa de Reprovação Média', color: 'hsl(var(--chart-1))'}}}>
+       { id: 'failureRate', title: 'Desempenho Acadêmico por Semestre', component: (
+        <ChartCard chartId="failureRate" title="Desempenho Acadêmico por Semestre" description="Diferença média entre IAA e IAP" onRemove={() => onToggleChart('failureRate')} onToggleLabels={() => onToggleLabels('failureRate')} labelsVisible={chartsWithLabels.includes('failureRate')}>
+          <ChartContainer config={{value: {label: 'Diferença Média IAA-IAP', color: 'hsl(var(--chart-1))'}}}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={failureRateBySemesterData} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent />} />
                 <Legend />
-                <Line type="monotone" dataKey="value" stroke="hsl(var(--chart-1))" strokeWidth={2} name="Taxa de Reprovação Média">
+                <Line type="monotone" dataKey="value" stroke="hsl(var(--chart-1))" strokeWidth={2} name="Diferença Média IAA-IAP">
                   {chartsWithLabels.includes('failureRate') && <LabelList dataKey="value" position="top" formatter={(v: number) => v.toFixed(2)} />}
                 </Line>
               </LineChart>
@@ -467,7 +472,28 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
               </ResponsiveContainer>
             </ChartContainer>
           </ChartCard>
-      )}
+      )},
+      ...(availableCourses.length > 1 ? [{
+        id: 'iaaByCourse', title: `Quartis de IAA por Curso`, component: (
+            <ChartCard chartId="iaaByCourse" title={`Quartis de IAA por Curso`} description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`} onRemove={() => onToggleChart('iaaByCourse')} onToggleLabels={() => onToggleLabels('iaaByCourse')} labelsVisible={chartsWithLabels.includes('iaaByCourse')}>
+              <ChartContainer config={iaaByCourseConfig}>
+                <ResponsiveContainer width="100%" height={Math.max(400, iaaByCourseData.length * 50)}>
+                    <BarChart data={iaaByCourseData} layout="vertical" margin={{ left: 200, bottom: 20 }}>
+                        <XAxis type="number" hide tickFormatter={(value) => analysisType === 'relative' ? `${value}%` : ''}/>
+                        <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={200} />
+                        <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={stackedTooltipFormatter} />} />
+                        <Legend />
+                        {Object.keys(iaaByCourseConfig).map(key => (
+                           <Bar key={key} dataKey={key} stackId="a" fill={iaaByCourseConfig[key].color} radius={5}>
+                              {chartsWithLabels.includes('iaaByCourse') && <LabelList dataKey={key} formatter={tooltipFormatter} position="center" className="fill-white" />}
+                           </Bar>
+                        ))}
+                    </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </ChartCard>
+        )
+    }] : [])
     ];
 
 

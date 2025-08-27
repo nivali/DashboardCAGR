@@ -26,7 +26,7 @@ const chartNames: { [key: string]: string } = {
     stats: 'Cartões de Estatísticas',
     heatmap: 'Mapa de Calor',
     iaaDistribution: 'Distribuição de IAA',
-    failureRate: 'Taxa de Reprovação',
+    failureRate: 'Desempenho Acadêmico',
     gender: 'Gráfico de Gênero',
     situation: 'Gráfico de Situação',
     nationality: 'Gráfico de Nacionalidade',
@@ -34,6 +34,7 @@ const chartNames: { [key: string]: string } = {
     iaaByGender: 'Gráfico IAA por Gênero',
     iaaByRace: 'Gráfico IAA por Raça/Cor',
     iaaByOrigin: 'Gráfico IAA por Origem',
+    iaaByCourse: 'Gráfico IAA por Curso',
     topCitiesOutsideSC: 'Top 7 Cidades de Origem (Fora de SC)',
     topCitiesSC: 'Top 7 Cidades de Origem (SC)',
 };
@@ -274,7 +275,13 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
     );
   };
   
-  const allCharts = Object.keys(chartNames);
+  const allChartKeys = useMemo(() => {
+    const chartKeys = Object.keys(chartNames);
+    if (courses.length <= 1) {
+      return chartKeys.filter(key => key !== 'iaaByCourse');
+    }
+    return chartKeys;
+  }, [courses.length]);
 
   const filterOptions = {
     courses, situations, genders, races, entryForms,
@@ -319,7 +326,7 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
                 </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                {allCharts.map(chartId => (
+                {allChartKeys.map(chartId => (
                     <DropdownMenuCheckboxItem
                     key={chartId}
                     checked={!hiddenCharts.includes(chartId)}
@@ -356,7 +363,7 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
             </aside>
         )}
         <div className={`${showFilters ? 'lg:col-span-3' : 'lg:col-span-4'} flex justify-center`}>
-            <div className="w-full max-w-[600px] space-y-8" ref={dashboardRef}>
+            <div className="w-full max-w-[800px] space-y-8" ref={dashboardRef}>
                <AppliedFilters filters={filters} onFilterChange={setFilters} options={initialRanges} />
               {!hiddenCharts.includes('stats') && <StatsCards students={filteredStudents} />}
               {!hiddenCharts.includes('heatmap') && (
@@ -367,7 +374,7 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
                     <BrazilHeatmap students={filteredStudents} comparisonCity={comparisonCity} analysisType={analysisType} />
                 </div>
                )}
-               <div className="flex flex-col space-y-4">
+               <div className="flex flex-col space-y-8">
                  <DataCharts 
                     students={filteredStudents} 
                     hiddenCharts={hiddenCharts} 
@@ -376,6 +383,7 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
                     comparisonCity={comparisonCity} 
                     chartsWithLabels={chartsWithLabels}
                     onToggleLabels={toggleChartLabels}
+                    availableCourses={courses}
                   />
                </div>
             </div>

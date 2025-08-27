@@ -153,6 +153,8 @@ export function Filters({ onFilterChange, filters, options, initialRanges }: Fil
     }
   };
 
+  const showCourseFilter = options.courses.length > 1;
+
   return (
     <Card className="sticky top-8 shadow-md">
       <CardHeader>
@@ -230,7 +232,7 @@ export function Filters({ onFilterChange, filters, options, initialRanges }: Fil
 
         <MultiSelectFilter label="Raça/Cor" selected={currentFilters.racaCor} onSelectionChange={(v) => handleMultiSelectChange('racaCor', v)} options={options.races} />
         
-        <MultiSelectFilter label="Curso" selected={currentFilters.nomeCurso} onSelectionChange={(v) => handleMultiSelectChange('nomeCurso', v)} options={options.courses} />
+        {showCourseFilter && <MultiSelectFilter label="Curso" selected={currentFilters.nomeCurso} onSelectionChange={(v) => handleMultiSelectChange('nomeCurso', v)} options={options.courses} />}
 
         <MultiSelectFilter label="Estado Civil" selected={currentFilters.estadoCivil} onSelectionChange={(v) => handleMultiSelectChange('estadoCivil', v)} options={options.maritalStatus} />
 
