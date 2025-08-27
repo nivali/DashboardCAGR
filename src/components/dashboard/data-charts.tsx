@@ -277,7 +277,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                   <BarChart data={iaaDistributionData} margin={{ left: 0, right: 30, top: 20, bottom: 60 }}>
                       <XAxis dataKey="name" angle={-60} textAnchor="end" interval={0} height={100} />
                       <YAxis tickFormatter={(value) => analysisType === 'relative' ? `${value}%` : value} />
-                      <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={tooltipFormatter} />} />
+                      <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={(value, name) => tooltipFormatter(value, name)} />} />
                       <Bar dataKey="value" radius={5}>
                         {iaaDistributionData.map((entry, index) => (
                            <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -353,7 +353,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                   <BarChart data={raceData} layout="vertical" margin={{ left: 60, right: 40 }}>
                       <XAxis type="number" hide tickFormatter={(value) => analysisType === 'relative' ? `${value}%` : value} />
                       <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={100} />
-                      <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={tooltipFormatter} />} />
+                      <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={(value, name) => tooltipFormatter(value, name)} />} />
                       <Bar dataKey="value" radius={5} >
                          {raceData.map((entry, index) => (
                            <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -372,7 +372,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                   <BarChart data={top7CitiesOutsideSCData} layout="vertical" margin={{ left: 60, right: 40 }} barSize={20}>
                       <XAxis type="number" hide tickFormatter={(value) => analysisType === 'relative' ? `${value}%` : value} />
                       <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={120} tick={{width: 110, textOverflow: 'ellipsis'}}/>
-                      <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={tooltipFormatter} />} />
+                      <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={(value, name) => tooltipFormatter(value, name)} />} />
                       <Bar dataKey="value" radius={5} >
                          {top7CitiesOutsideSCData.map((entry, index) => (
                            <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -391,7 +391,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                 <BarChart data={top7CitiesSCData} layout="vertical" margin={{ left: 60, right: 40 }} barSize={20}>
                     <XAxis type="number" hide tickFormatter={(value) => analysisType === 'relative' ? `${value}%` : value} />
                     <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={120} tick={{width: 110, textOverflow: 'ellipsis'}} />
-                    <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={tooltipFormatter} />} />
+                    <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={(value, name) => tooltipFormatter(value, name)} />} />
                     <Bar dataKey="value" radius={5} >
                        {top7CitiesSCData.map((entry, index) => (
                          <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -410,7 +410,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
               <LineChart data={failureRateBySemesterData} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
                 <XAxis dataKey="name" />
                 <YAxis />
-                <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={tooltipFormatter} />} />
+                <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={(value, name, item) => [`${value.toFixed(2)}`, item.payload.name]} />} />
                 <Legend />
                 <Line type="monotone" dataKey="value" stroke="hsl(var(--chart-1))" strokeWidth={2} name={`Desempenho (${currentAcademicTerm})`}>
                   {chartsWithLabels.includes('failureRate') && <LabelList dataKey="value" position="top" formatter={(v: number) => v.toFixed(2)} />}
@@ -482,8 +482,8 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
             <ChartCard chartId="iaaByCourse" title={`Quartis de IAA por Curso`} description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`} onRemove={() => onToggleChart('iaaByCourse')} onToggleLabels={() => onToggleLabels('iaaByCourse')} labelsVisible={chartsWithLabels.includes('iaaByCourse')}>
               <ChartContainer config={iaaByCourseConfig}>
                 <ResponsiveContainer width="100%" height={Math.max(400, iaaByCourseData.length * 50)}>
-                    <BarChart data={iaaByCourseData} layout="vertical" margin={{ left: 200, bottom: 20 }}>
-                        <XAxis type="number" hide tickFormatter={(value) => analysisType === 'relative' ? `${value}%` : ''}/>
+                    <BarChart data={iaaByCourseData} layout="vertical" stackOffset="expand" margin={{ left: 200, bottom: 20 }}>
+                        <XAxis type="number" hide tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}/>
                         <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={200} />
                         <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={stackedTooltipFormatter} />} />
                         <Legend />

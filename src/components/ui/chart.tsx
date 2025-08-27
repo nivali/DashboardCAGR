@@ -190,6 +190,8 @@ const ChartTooltipContent = React.forwardRef<
             const itemConfig = getPayloadConfigFromPayload(config, item, key)
             const indicatorColor = color || item.payload.fill || item.color
 
+            const [value, name] = formatter && item?.value !== undefined && item.name ? formatter(item.value, item.name, item, index, item.payload) : [item.value, item.name];
+
             return (
               <div
                 key={item.dataKey}
@@ -198,9 +200,6 @@ const ChartTooltipContent = React.forwardRef<
                   indicator === "dot" && "items-center"
                 )}
               >
-                {formatter && item?.value !== undefined && item.name ? (
-                  formatter(item.value, item.name, item, index, item.payload)
-                ) : (
                   <>
                     {itemConfig?.icon ? (
                       <itemConfig.icon />
@@ -235,17 +234,16 @@ const ChartTooltipContent = React.forwardRef<
                       <div className="grid gap-1.5">
                         {nestLabel ? tooltipLabel : null}
                         <span className="text-muted-foreground">
-                          {itemConfig?.label || item.name}
+                          {itemConfig?.label || name}
                         </span>
                       </div>
-                      {item.value && (
+                      {value && (
                         <span className="font-mono font-medium tabular-nums text-foreground">
-                          {item.value.toLocaleString()}
+                          {value.toLocaleString()}
                         </span>
                       )}
                     </div>
                   </>
-                )}
               </div>
             )
           })}
