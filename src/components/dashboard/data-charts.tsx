@@ -14,6 +14,8 @@ import {
 import { Bar, BarChart, Pie, PieChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, LineChart, Line, Cell, LabelList, Dot } from "recharts"
 import { Button } from "../ui/button"
 import { X, Tag } from "lucide-react"
+import { Label } from "../ui/label"
+import { Switch } from "../ui/switch"
 
 interface DataChartsProps {
   students: Student[];
@@ -26,9 +28,10 @@ interface DataChartsProps {
   availableCourses: string[];
   currentAcademicTerm: string;
   differentiateSemesters: boolean;
+  onDifferentiateSemestersChange: (checked: boolean) => void;
 }
 
-const ChartCard: React.FC<React.PropsWithChildren<{ 
+type ChartCardProps = React.PropsWithChildren<{ 
     title: string, 
     chartId: string,
     description?: string, 
@@ -36,9 +39,13 @@ const ChartCard: React.FC<React.PropsWithChildren<{
     onRemove: () => void,
     onToggleLabels: () => void,
     labelsVisible: boolean,
-}>> = ({ title, chartId, description, children, className, onRemove, onToggleLabels, labelsVisible }) => (
+    extraControls?: React.ReactNode;
+}>
+
+const ChartCard: React.FC<ChartCardProps> = ({ title, chartId, description, children, className, onRemove, onToggleLabels, labelsVisible, extraControls }) => (
     <Card className={`shadow-sm hover:shadow-md transition-shadow relative flex flex-col ${className}`}>
         <div className="absolute top-2 right-2 z-10 flex items-center gap-1">
+            {extraControls}
             <Button variant={labelsVisible ? "secondary" : "ghost"} size="icon" className="h-6 w-6" onClick={onToggleLabels}>
                 <Tag className="h-4 w-4" />
             </Button>
@@ -118,7 +125,7 @@ const CustomDot = (props: any) => {
     return <Dot {...props} fill={color} />;
 };
 
-export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType, comparisonCity, chartsWithLabels, onToggleLabels, availableCourses, currentAcademicTerm, differentiateSemesters }: DataChartsProps) {
+export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType, comparisonCity, chartsWithLabels, onToggleLabels, availableCourses, currentAcademicTerm, differentiateSemesters, onDifferentiateSemestersChange }: DataChartsProps) {
     const totalStudents = students.length;
 
     const { 
@@ -147,7 +154,9 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
         const iaaGenderPairs: {primary: string, secondary: string}[] = [];
         const iaaRacePairs: {primary: string, secondary: string}[] = [];
         const iaaOriginPairs: {primary: string, secondary: string}[] = [];
-        const iaaCoursePairs: {primary: string, secondary: string}[] = [];
+        const iaaCoursePairs: {primary: string, secondary: string, count: number}[] = [];
+
+        const courseCounts: { [course: string]: { [quartile: string]: number } } = {};
 
         for (const student of students) {
             genderCounts[student.sexo] = (genderCounts[student.sexo] || 0) + 1;
@@ -162,7 +171,6 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                     cityCountsSC[student.municipioSG] = (cityCountsSC[student.municipioSG] || 0) + 1;
                 }
             }
-
 
             const iaa = student.iaa;
             if (iaa >= 0 && iaa <= 1000) iaaRanges["0-1000"]++;
@@ -182,7 +190,11 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                 iaaRacePairs.push({ primary: iaaQuartile, secondary: student.racaCor });
                 const origin = student.municipioSG.toLowerCase() === comparisonCity.toLowerCase() ? comparisonCity : 'Externo';
                 iaaOriginPairs.push({ primary: iaaQuartile, secondary: origin });
-                iaaCoursePairs.push({ primary: student.nomeCurso, secondary: iaaQuartile });
+                
+                if (!courseCounts[student.nomeCurso]) {
+                    courseCounts[student.nomeCurso] = { 'Q1 (Inferior)': 0, 'Q2': 0, 'Q3': 0, 'Q4 (Superior)': 0 };
+                }
+                courseCounts[student.nomeCurso][iaaQuartile]++;
             }
 
             if (student.iap !== undefined && student.iaa > 0 && student.iap > 0) {
@@ -196,6 +208,20 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
             }
         }
         
+        const courseDataResult = Object.entries(courseCounts).map(([courseName, quartiles]) => {
+            const row: any = { name: courseName };
+            let totalStudentsInCourse = 0;
+            Object.values(quartiles).forEach(count => totalStudentsInCourse += count);
+            
+            Object.entries(quartiles).forEach(([quartileName, count]) => {
+                row[quartileName] = {
+                    relative: totalStudentsInCourse > 0 ? (count / totalStudentsInCourse) : 0,
+                    absolute: count,
+                };
+            });
+            return row;
+        });
+
         const toChartData = (counts: {[key: string]: number}, total: number = totalStudents) => {
              return Object.entries(counts).map(([name, value]) => ({ 
                 name, 
@@ -231,7 +257,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
             iaaByGenderData: aggregateNestedData(iaaGenderPairs, analysisType),
             iaaByRaceData: aggregateNestedData(iaaRacePairs, analysisType),
             iaaByOriginData: aggregateNestedData(iaaOriginPairs, analysisType),
-            iaaByCourseData: aggregateNestedData(iaaCoursePairs, analysisType),
+            iaaByCourseData: courseDataResult,
             iaaQuartiles: {q1, q2, q3},
             iaaDistributionData: toChartData(iaaRanges),
             failureRateBySemesterData: calculatedFailureRateData,
@@ -426,7 +452,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
            </ChartContainer>
         </ChartCard>
     )},
-       { id: 'failureRate', title: 'Desempenho Acadêmico por Semestre', component: (
+       { id: 'failureRate', title: 'Desempenho Acadêmico por Semestre de Ingresso', component: (
         <ChartCard 
             chartId="failureRate" 
             title="Desempenho Acadêmico por Semestre de Ingresso" 
@@ -434,6 +460,16 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
             onRemove={() => onToggleChart('failureRate')} 
             onToggleLabels={() => onToggleLabels('failureRate')} 
             labelsVisible={chartsWithLabels.includes('failureRate')}
+            extraControls={
+                <div className="flex items-center space-x-2 mr-2">
+                    <Label htmlFor="differentiate-semesters" className="text-sm">Diferenciar Semestres</Label>
+                    <Switch
+                        id="differentiate-semesters"
+                        checked={differentiateSemesters}
+                        onCheckedChange={onDifferentiateSemestersChange}
+                    />
+                </div>
+            }
         >
           <ChartContainer config={failureRateConfig}>
             <ResponsiveContainer width="100%" height="100%">
@@ -522,14 +558,22 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
                     <BarChart data={iaaByCourseData} layout="vertical" stackOffset="expand" margin={{ right: 20, bottom: 20, top: 20, left: 100 }}>
                         <XAxis type="number" hide tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}/>
                         <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={150} />
-                        <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={(value, name, props) => {
-                            const formattedValue = `${((value as number) * 100).toFixed(1)}%`;
+                        <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={(value, name, item) => {
+                            const { absolute, relative } = item.payload[name];
+                            const formattedValue = `${(relative * 100).toFixed(1)}% (${absolute})`;
                             return [formattedValue, name];
                         }} />} />
                         <Legend />
                         {Object.keys(iaaByCourseConfig).map(key => (
-                           <Bar key={key} dataKey={key} stackId="a" fill={iaaByCourseConfig[key].color} radius={5}>
-                              {chartsWithLabels.includes('iaaByCourse') && <LabelList dataKey={key} formatter={(value) => labelFormatter((value as number) * 100)} position="center" className="fill-white" />}
+                           <Bar key={key} dataKey={`${key}.relative`} name={key} stackId="a" fill={iaaByCourseConfig[key].color} radius={5}>
+                              {chartsWithLabels.includes('iaaByCourse') && 
+                                <LabelList 
+                                  dataKey={`${key}.relative`}
+                                  formatter={(value: number) => `${(value * 100).toFixed(0)}%`}
+                                  position="center" 
+                                  className="fill-white" 
+                                />
+                              }
                            </Bar>
                         ))}
                     </BarChart>
