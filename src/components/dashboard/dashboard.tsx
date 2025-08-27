@@ -9,7 +9,7 @@ import { Filters } from '@/components/dashboard/filters';
 import { StatsCards } from '@/components/dashboard/stats-cards';
 import { DataCharts } from '@/components/dashboard/data-charts';
 import { AppliedFilters } from '@/components/dashboard/applied-filters';
-import { RefreshCcw, Download, Loader2, EyeOff, X, Filter as FilterIcon } from 'lucide-react';
+import { RefreshCcw, Download, Loader2, EyeOff, X, Filter as FilterIcon, FileCode } from 'lucide-react';
 import { BrazilHeatmap } from './brazil-heatmap';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem } from '@/components/ui/dropdown-menu';
 import { Label } from '../ui/label';
@@ -174,6 +174,63 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
     }
   };
 
+  const handleSaveHtml = async () => {
+    if (!dashboardRef.current) return;
+
+    setIsSaving(true);
+    try {
+      const dashboardHtml = dashboardRef.current.outerHTML;
+      const styles = Array.from(document.styleSheets)
+        .map(styleSheet => {
+          try {
+            return Array.from(styleSheet.cssRules)
+              .map(rule => rule.cssText)
+              .join('\n');
+          } catch (e) {
+            console.warn("Could not read stylesheet rules", e);
+            return '';
+          }
+        })
+        .join('\n');
+
+      const fullHtml = `
+        <!DOCTYPE html>
+        <html lang="pt-BR">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Dashboard Estático - AlunoVis</title>
+            <link rel="preconnect" href="https://fonts.googleapis.com" />
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+            <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
+            <style>
+              ${styles}
+              body { font-family: 'Inter', sans-serif; background-color: ${backgroundColor}; }
+              .dashboard-container { margin: 0 auto; padding: 2rem; }
+            </style>
+          </head>
+          <body>
+            <div class="dashboard-container">
+              ${dashboardHtml}
+            </div>
+          </body>
+        </html>
+      `;
+
+      const blob = new Blob([fullHtml], { type: 'text/html' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'dashboard.html';
+      link.click();
+      URL.revokeObjectURL(link.href);
+
+    } catch (error) {
+      console.error("Erro ao salvar o HTML:", error);
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   const toggleChartVisibility = (chartId: string) => {
     setHiddenCharts(prev => 
       prev.includes(chartId) ? prev.filter(id => id !== chartId) : [...prev, chartId]
@@ -238,7 +295,11 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
             </DropdownMenu>
             <Button onClick={handleSaveDashboard} variant="outline" disabled={isSaving}>
                 {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-                {isSaving ? "Salvando..." : "Salvar Painel"}
+                {isSaving ? "Salvando Imagem..." : "Salvar Imagem"}
+            </Button>
+            <Button onClick={handleSaveHtml} variant="outline" disabled={isSaving}>
+                 {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileCode className="mr-2 h-4 w-4" />}
+                 {isSaving ? "Exportando..." : "Exportar HTML"}
             </Button>
             <Button onClick={onReset} variant="outline">
                 <RefreshCcw className="mr-2 h-4 w-4" />
