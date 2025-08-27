@@ -481,15 +481,15 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
         id: 'iaaByCourse', title: `Quartis de IAA por Curso`, component: (
             <ChartCard chartId="iaaByCourse" title={`Quartis de IAA por Curso`} description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`} onRemove={() => onToggleChart('iaaByCourse')} onToggleLabels={() => onToggleLabels('iaaByCourse')} labelsVisible={chartsWithLabels.includes('iaaByCourse')}>
               <ChartContainer config={iaaByCourseConfig}>
-                <ResponsiveContainer width="100%" height={Math.max(400, iaaByCourseData.length * 50)}>
-                    <BarChart data={iaaByCourseData} layout="vertical" stackOffset="expand" margin={{ left: 200, bottom: 20 }}>
+                <ResponsiveContainer width="100%" height={Math.max(200, iaaByCourseData.length * 80)}>
+                    <BarChart data={iaaByCourseData} layout="vertical" stackOffset="expand" margin={{ left: 20, right: 20, bottom: 20, top: 20 }}>
                         <XAxis type="number" hide tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}/>
-                        <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={200} />
+                        <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={150} />
                         <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={stackedTooltipFormatter} />} />
                         <Legend />
                         {Object.keys(iaaByCourseConfig).map(key => (
                            <Bar key={key} dataKey={key} stackId="a" fill={iaaByCourseConfig[key].color} radius={5}>
-                              {chartsWithLabels.includes('iaaByCourse') && <LabelList dataKey={key} formatter={labelFormatter} position="center" className="fill-white" />}
+                              {chartsWithLabels.includes('iaaByCourse') && <LabelList dataKey={key} formatter={(value) => labelFormatter(value as number)} position="center" className="fill-white" />}
                            </Bar>
                         ))}
                     </BarChart>
