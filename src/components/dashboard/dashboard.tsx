@@ -50,6 +50,7 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
   const [showFilters, setShowFilters] = useState(true);
   const [comparisonCity, setComparisonCity] = useState('Joinville');
   const [chartsWithLabels, setChartsWithLabels] = useState<string[]>(Object.keys(chartNames));
+  const [differentiateSemesters, setDifferentiateSemesters] = useState(false);
 
 
   useEffect(() => {
@@ -308,6 +309,14 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
             <Label htmlFor="analysis-type">Valores Relativos</Label>
         </div>
         <div className="flex items-center space-x-2">
+            <Label htmlFor="differentiate-semesters">Diferenciar Semestres</Label>
+            <Switch
+                id="differentiate-semesters"
+                checked={differentiateSemesters}
+                onCheckedChange={setDifferentiateSemesters}
+            />
+        </div>
+        <div className="flex items-center space-x-2">
             <Label htmlFor="comparison-city">Cidade de Comparação</Label>
             <Select value={comparisonCity} onValueChange={setComparisonCity}>
                 <SelectTrigger id="comparison-city" className="w-[180px]">
@@ -392,6 +401,7 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
                     onToggleLabels={toggleChartLabels}
                     availableCourses={courses}
                     currentAcademicTerm={currentAcademicTerm}
+                    differentiateSemesters={differentiateSemesters}
                   />
                </div>
             </div>

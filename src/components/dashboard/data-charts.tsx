@@ -11,7 +11,7 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from "@/components/ui/chart"
-import { Bar, BarChart, Pie, PieChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, LineChart, Line, Cell, LabelList } from "recharts"
+import { Bar, BarChart, Pie, PieChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend, LineChart, Line, Cell, LabelList, Dot } from "recharts"
 import { Button } from "../ui/button"
 import { X, Tag } from "lucide-react"
 
@@ -25,6 +25,7 @@ interface DataChartsProps {
   onToggleLabels: (chartId: string) => void;
   availableCourses: string[];
   currentAcademicTerm: string;
+  differentiateSemesters: boolean;
 }
 
 const ChartCard: React.FC<React.PropsWithChildren<{ 
@@ -106,7 +107,18 @@ const getStableColor = (name: string): string => {
     return color;
 };
 
-export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType, comparisonCity, chartsWithLabels, onToggleLabels, availableCourses, currentAcademicTerm }: DataChartsProps) {
+const CustomDot = (props: any) => {
+    const { cx, cy, payload, differentiateSemesters } = props;
+
+    if (!differentiateSemesters) {
+        return <Dot {...props} fill="hsl(var(--chart-1))" />;
+    }
+
+    const color = payload.semester === 1 ? "hsl(var(--chart-1))" : "hsl(var(--chart-2))";
+    return <Dot {...props} fill={color} />;
+};
+
+export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType, comparisonCity, chartsWithLabels, onToggleLabels, availableCourses, currentAcademicTerm, differentiateSemesters }: DataChartsProps) {
     const totalStudents = students.length;
 
     const { 
@@ -124,7 +136,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
             "0-1000": 0, "1001-2000": 0, "2001-3000": 0, "3001-4000": 0, "4001-5000": 0,
             "5001-6000": 0, "6001-7000": 0, "7001-8000": 0, "8001-9000": 0, "9001-10000": 0
         };
-        const failureRateBySemester: { [semester: string]: { totalRate: number, count: number } } = {};
+        const failureRateBySemester: { [semester: string]: { totalRate: number, count: number, semesterNum: number } } = {};
         
         const sortedIaa = students.map(s => s.iaa).filter(iaa => iaa > 0).sort((a, b) => a - b);
         const q1 = sortedIaa[Math.floor(sortedIaa.length / 4)] || 0;
@@ -177,7 +189,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
               const failureRate = student.iaa - student.iap;
               const semesterKey = `${student.anoIngresso}/${student.semestreIngresso}`;
               if (!failureRateBySemester[semesterKey]) {
-                failureRateBySemester[semesterKey] = { totalRate: 0, count: 0 };
+                failureRateBySemester[semesterKey] = { totalRate: 0, count: 0, semesterNum: student.semestreIngresso };
               }
               failureRateBySemester[semesterKey].totalRate += failureRate;
               failureRateBySemester[semesterKey].count++;
@@ -196,6 +208,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
           .map(([semester, data]) => ({
             name: semester,
             value: data.count > 0 ? parseFloat((data.totalRate / data.count).toFixed(2)) : 0,
+            semester: data.semesterNum
           }))
           .sort((a, b) => {
             const [yearA, semA] = a.name.split('/').map(Number);
@@ -273,6 +286,11 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
     const iaaDistributionConfig = chartConfig(iaaDistributionData);
     const top7CitiesOutsideSCConfig = chartConfig(top7CitiesOutsideSCData);
     const top7CitiesSCConfig = chartConfig(top7CitiesSCData);
+    const failureRateConfig = {
+      "value": { label: 'Diferença Média IAA-IAP' },
+      "Semestre 1": { label: 'Semestre 1', color: 'hsl(var(--chart-1))' },
+      "Semestre 2": { label: 'Semestre 2', color: 'hsl(var(--chart-2))' }
+    };
     
     const charts = [
       { id: 'iaaDistribution', title: 'Distribuição de IAA', component: (
@@ -409,15 +427,29 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
         </ChartCard>
     )},
        { id: 'failureRate', title: 'Desempenho Acadêmico por Semestre', component: (
-        <ChartCard chartId="failureRate" title="Desempenho Acadêmico por Semestre de Ingresso" description="Diferença média entre IAA e IAP por turma" onRemove={() => onToggleChart('failureRate')} onToggleLabels={() => onToggleLabels('failureRate')} labelsVisible={chartsWithLabels.includes('failureRate')}>
-          <ChartContainer config={{value: {label: 'Diferença Média IAA-IAP', color: 'hsl(var(--chart-1))'}}}>
+        <ChartCard 
+            chartId="failureRate" 
+            title="Desempenho Acadêmico por Semestre de Ingresso" 
+            description="Diferença média entre IAA e IAP por turma" 
+            onRemove={() => onToggleChart('failureRate')} 
+            onToggleLabels={() => onToggleLabels('failureRate')} 
+            labelsVisible={chartsWithLabels.includes('failureRate')}
+        >
+          <ChartContainer config={failureRateConfig}>
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={failureRateBySemesterData} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={(value, name, item) => [`${(value as number).toFixed(2)}`, item.payload.name]} />} />
                 <Legend />
-                <Line type="monotone" dataKey="value" stroke="hsl(var(--chart-1))" strokeWidth={2} name={`Desempenho da Turma`}>
+                <Line 
+                  type="monotone" 
+                  dataKey="value" 
+                  stroke="hsl(var(--chart-1))" 
+                  strokeWidth={2} 
+                  name={`Desempenho da Turma`}
+                  dot={<CustomDot differentiateSemesters={differentiateSemesters} />}
+                >
                   {chartsWithLabels.includes('failureRate') && <LabelList dataKey="value" position="top" formatter={(v: number) => v.toFixed(2)} />}
                 </Line>
               </LineChart>
@@ -487,7 +519,7 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
             <ChartCard chartId="iaaByCourse" title={`Quartis de IAA por Curso`} description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`} onRemove={() => onToggleChart('iaaByCourse')} onToggleLabels={() => onToggleLabels('iaaByCourse')} labelsVisible={chartsWithLabels.includes('iaaByCourse')}>
               <ChartContainer config={iaaByCourseConfig}>
                 <ResponsiveContainer width="100%" height={Math.max(200, iaaByCourseData.length * 80)}>
-                    <BarChart data={iaaByCourseData} layout="vertical" stackOffset="expand" margin={{ right: 20, bottom: 20, top: 20 }}>
+                    <BarChart data={iaaByCourseData} layout="vertical" stackOffset="expand" margin={{ right: 20, bottom: 20, top: 20, left: 100 }}>
                         <XAxis type="number" hide tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}/>
                         <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={150} />
                         <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={(value, name, props) => {
