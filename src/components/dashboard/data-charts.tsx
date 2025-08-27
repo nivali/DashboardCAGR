@@ -452,11 +452,11 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
            </ChartContainer>
         </ChartCard>
     )},
-       { id: 'failureRate', title: 'Desempenho Acadêmico por Semestre de Ingresso', component: (
+       { id: 'failureRate', title: 'Comparativo IAA e IAP', component: (
         <ChartCard 
             chartId="failureRate" 
-            title="Desempenho Acadêmico por Semestre de Ingresso" 
-            description="Diferença média entre IAA e IAP por turma" 
+            title="Comparativo IAA e IAP" 
+            description="Diferença média entre IAA e IAP por turma de ingresso" 
             onRemove={() => onToggleChart('failureRate')} 
             onToggleLabels={() => onToggleLabels('failureRate')} 
             labelsVisible={chartsWithLabels.includes('failureRate')}
@@ -555,23 +555,23 @@ export function DataCharts({ students, hiddenCharts, onToggleChart, analysisType
             <ChartCard chartId="iaaByCourse" title={`Quartis de IAA por Curso`} description={`Q1: ≤ ${iaaQuartiles.q1?.toFixed(2)}, Q2: ≤ ${iaaQuartiles.q2?.toFixed(2)}, Q3: ≤ ${iaaQuartiles.q3?.toFixed(2)}`} onRemove={() => onToggleChart('iaaByCourse')} onToggleLabels={() => onToggleLabels('iaaByCourse')} labelsVisible={chartsWithLabels.includes('iaaByCourse')}>
               <ChartContainer config={iaaByCourseConfig}>
                 <ResponsiveContainer width="100%" height={Math.max(200, iaaByCourseData.length * 80)}>
-                    <BarChart data={iaaByCourseData} layout="vertical" stackOffset="expand" margin={{ right: 20, bottom: 20, top: 20, left: 100 }}>
+                    <BarChart data={iaaByCourseData} layout="vertical" stackOffset="expand" margin={{ left: 150, right: 20, bottom: 20, top: 20 }}>
                         <XAxis type="number" hide tickFormatter={(value) => `${(value * 100).toFixed(0)}%`}/>
                         <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={150} />
                         <Tooltip cursor={{fill: 'hsl(var(--muted))'}} content={<ChartTooltipContent formatter={(value, name, item) => {
                             const { absolute, relative } = item.payload[name];
-                            const formattedValue = `${(relative * 100).toFixed(1)}% (${absolute})`;
-                            return [formattedValue, name];
+                            const displayValue = analysisType === 'relative' ? `${(relative * 100).toFixed(1)}%` : absolute.toLocaleString();
+                            return [displayValue, name];
                         }} />} />
                         <Legend />
                         {Object.keys(iaaByCourseConfig).map(key => (
                            <Bar key={key} dataKey={`${key}.relative`} name={key} stackId="a" fill={iaaByCourseConfig[key].color} radius={5}>
                               {chartsWithLabels.includes('iaaByCourse') && 
                                 <LabelList 
-                                  dataKey={`${key}.relative`}
-                                  formatter={(value: number) => `${(value * 100).toFixed(0)}%`}
-                                  position="center" 
-                                  className="fill-white" 
+                                    dataKey={analysisType === 'relative' ? `${key}.relative` : `${key}.absolute`}
+                                    formatter={(value: number) => analysisType === 'relative' ? `${(value * 100).toFixed(0)}%` : value.toLocaleString()}
+                                    position="center" 
+                                    className="fill-white" 
                                 />
                               }
                            </Bar>

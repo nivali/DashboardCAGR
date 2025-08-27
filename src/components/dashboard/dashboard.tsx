@@ -26,7 +26,7 @@ const chartNames: { [key: string]: string } = {
     stats: 'Cartões de Estatísticas',
     heatmap: 'Mapa de Calor',
     iaaDistribution: 'Distribuição de IAA',
-    failureRate: 'Desempenho Acadêmico',
+    failureRate: 'Comparativo IAA e IAP',
     gender: 'Gráfico de Gênero',
     situation: 'Gráfico de Situação',
     nationality: 'Gráfico de Nacionalidade',
