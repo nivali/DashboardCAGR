@@ -282,6 +282,13 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
     }
     return chartKeys;
   }, [courses.length]);
+  
+  const currentAcademicTerm = useMemo(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const semester = now.getMonth() < 6 ? 1 : 2;
+    return `${year}/${semester}`;
+  }, []);
 
   const filterOptions = {
     courses, situations, genders, races, entryForms,
@@ -384,6 +391,7 @@ export default function Dashboard({ students, onReset }: DashboardProps) {
                     chartsWithLabels={chartsWithLabels}
                     onToggleLabels={toggleChartLabels}
                     availableCourses={courses}
+                    currentAcademicTerm={currentAcademicTerm}
                   />
                </div>
             </div>
