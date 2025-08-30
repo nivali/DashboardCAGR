@@ -6,7 +6,7 @@ Edumap é uma aplicação web interativa, desenvolvida com Next.js e TypeScript,
 
 A interface principal oferece um conjunto de filtros e gráficos que são atualizados em tempo real, permitindo uma exploração fluida e intuitiva dos dados.
 
-![Visão Geral do Dashboard](https://github.com/leandro-couto/edumap/blob/main/docs/dashboard-geral.png?raw=true)
+![Visão Inicial do Dashboard](docs/Edumap1.PNG)
 
 ## Principais Funcionalidades
 
@@ -23,7 +23,7 @@ A interface principal oferece um conjunto de filtros e gráficos que são atuali
 - **Visualização Interativa de Dados**: Uma coleção de gráficos personalizáveis que se atualizam instantaneamente com base nos filtros aplicados.
 - **Exportação de Relatórios**: Exporte o dashboard completo ou gráficos individuais como imagens (`PNG`) ou como um arquivo `HTML` interativo, preservando as visualizações para relatórios e apresentações.
 
-![Dashboard Exportado para HTML](https://github.com/leandro-couto/edumap/blob/main/docs/dashboard-export.png?raw=true)
+![Dashboard Exportado para HTML](docs/dashboard-exportado.png)
 
 ## Galeria de Gráficos
 
@@ -31,11 +31,13 @@ A aplicação gera uma variedade de gráficos para analisar os dados sob diferen
 
 | Mapa de Calor por Estado de Origem | Distribuição de IAA |
 | :---: | :---: |
-| ![Heatmap Brasil](https://github.com/leandro-couto/edumap/blob/main/docs/heatmap.png?raw=true) | ![Distribuição IAA](https://github.com/leandro-couto/edumap/blob/main/docs/iaa-distribution.png?raw=true) |
+| ![Heatmap de distribuição dos alunos pelos estados e Distribuição do desempenho dos alunos por IAA](docs/Edumap_heatmap_distribuicao.png)
+
 
 | Comparativo de Desempenho (IAA vs. IAP) | Quartis de IAA por Gênero |
 | :---: | :---: |
-| ![Comparativo IAA e IAP](https://github.com/leandro-couto/edumap/blob/main/docs/iaa-iap.png?raw=true) | ![Quartis IAA por Gênero](https://github.com/leandro-couto/edumap/blob/main/docs/iaa-gender.png?raw=true) |
+| ![Comparativo do desemenho do aluno entre IAA e IAP e Quartis do IAA por gênero](docs/Edumap_comparativoQuartis.png)
+
 
 ## Tecnologias Utilizadas
 
